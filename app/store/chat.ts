@@ -63,7 +63,7 @@ export type ChatMessage = RequestMessage & {
   streaming?: boolean;
   isError?: boolean;
   id: string;
-  model?: ModelType;
+  model?: string;
   promptName?: string;
   sampling?: ResolvedSamplingConfig;
   tools?: ChatMessageTool[];
@@ -519,6 +519,12 @@ export const useChatStore = createPersistStore(
             },
             onConfigResolved(config) {
               botMessage.sampling = config;
+              get().updateTargetSession(session, (session) => {
+                session.messages = session.messages.concat();
+              });
+            },
+            onModelResolved(model) {
+              botMessage.model = model;
               get().updateTargetSession(session, (session) => {
                 session.messages = session.messages.concat();
               });

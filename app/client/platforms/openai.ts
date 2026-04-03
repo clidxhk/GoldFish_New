@@ -155,17 +155,10 @@ function withGoldfishSampling(
   }
 
   if (goldfish.randomModelEnabled && goldfish.randomModelSelected.length > 0) {
-    if (responseIndex !== undefined && responseIndex >= 0) {
-      nextConfig.model =
-        goldfish.randomModelSelected[
-          responseIndex % goldfish.randomModelSelected.length
-        ] ?? nextConfig.model;
-    } else {
-      nextConfig.model =
-        goldfish.randomModelSelected[
-          Math.floor(Math.random() * goldfish.randomModelSelected.length)
-        ] ?? nextConfig.model;
-    }
+    nextConfig.model =
+      goldfish.randomModelSelected[
+        Math.floor(Math.random() * goldfish.randomModelSelected.length)
+      ] ?? nextConfig.model;
   }
 
   return nextConfig;
@@ -307,6 +300,7 @@ export class ChatGPTApi implements LLMApi {
       options.config.responseCount,
     );
     const resolvedModel = modelConfig.model;
+    options.onModelResolved?.(resolvedModel);
 
     let requestPayload: RequestPayload | DalleRequestPayload;
 
@@ -518,7 +512,7 @@ export class ChatGPTApi implements LLMApi {
         // make a fetch request
         const requestTimeoutId = setTimeout(
           () => controller.abort(),
-          getTimeoutMSByModel(options.config.model),
+          getTimeoutMSByModel(resolvedModel),
         );
 
         const res = await fetch(chatPath, chatPayload);
