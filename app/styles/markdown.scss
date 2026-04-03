@@ -101,6 +101,11 @@
   word-wrap: break-word;
 }
 
+.markdown-body .ai-word-highlight {
+  color: #d11a2a;
+  font-weight: 700;
+}
+
 .light {
   @include light;
 }

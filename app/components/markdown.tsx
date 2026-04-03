@@ -25,6 +25,114 @@ import { IconButton } from "./button";
 import { useAppConfig } from "../store/config";
 import clsx from "clsx";
 
+let aiWordsPromise: Promise<string[]> | null = null;
+
+function getAiWords() {
+  if (!aiWordsPromise) {
+    aiWordsPromise = fetch("/api/ai-words")
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`failed to fetch ai words: ${res.status}`);
+        }
+        const data = (await res.json()) as { words?: string[] };
+        return Array.isArray(data.words) ? data.words : [];
+      })
+      .catch((error) => {
+        console.error("[markdown] failed to load ai words", error);
+        return [];
+      });
+  }
+
+  return aiWordsPromise;
+}
+
+function escapeRegExp(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function createAiWordHighlighter(words: string[]) {
+  const normalizedWords = Array.from(
+    new Set(words.map((word) => word.trim()).filter(Boolean)),
+  ).sort((a, b) => b.length - a.length);
+
+  if (normalizedWords.length === 0) {
+    return () => undefined;
+  }
+
+  const pattern = new RegExp(normalizedWords.map(escapeRegExp).join("|"), "gi");
+  const blockedTags = new Set(["code", "pre", "script", "style"]);
+
+  function highlightTextNode(node: any) {
+    const value = typeof node?.value === "string" ? node.value : "";
+    if (!value) return undefined;
+
+    pattern.lastIndex = 0;
+    const matches = Array.from(value.matchAll(pattern)) as RegExpMatchArray[];
+    if (matches.length === 0) return undefined;
+
+    const children: any[] = [];
+    let lastIndex = 0;
+
+    for (const match of matches) {
+      const matchedText = match[0];
+      const startIndex = match.index ?? 0;
+
+      if (startIndex > lastIndex) {
+        children.push({
+          type: "text",
+          value: value.slice(lastIndex, startIndex),
+        });
+      }
+
+      children.push({
+        type: "element",
+        tagName: "span",
+        properties: {
+          className: ["ai-word-highlight"],
+        },
+        children: [{ type: "text", value: matchedText }],
+      });
+
+      lastIndex = startIndex + matchedText.length;
+    }
+
+    if (lastIndex < value.length) {
+      children.push({
+        type: "text",
+        value: value.slice(lastIndex),
+      });
+    }
+
+    return children;
+  }
+
+  function visit(node: any) {
+    if (!node || !Array.isArray(node.children)) return;
+    if (node.type === "element" && blockedTags.has(node.tagName)) return;
+
+    const nextChildren: any[] = [];
+
+    for (const child of node.children) {
+      if (child?.type === "text") {
+        const highlightedChildren = highlightTextNode(child);
+        if (highlightedChildren) {
+          nextChildren.push(...highlightedChildren);
+          continue;
+        }
+      }
+
+      visit(child);
+      nextChildren.push(child);
+    }
+
+    node.children = nextChildren;
+  }
+
+  return () => (tree: any) => {
+    visit(tree);
+  };
+}
+
 export function Mermaid(props: { code: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [hasError, setHasError] = useState(false);
@@ -268,15 +376,26 @@ function tryWrapHtmlCode(text: string) {
 }
 
 function _MarkDownContent(props: { content: string }) {
+  const [aiWords, setAiWords] = useState<string[]>([]);
+
+  useEffect(() => {
+    getAiWords().then(setAiWords);
+  }, []);
+
   const escapedContent = useMemo(() => {
     return tryWrapHtmlCode(escapeBrackets(props.content));
   }, [props.content]);
+  const aiWordHighlighter = useMemo(
+    () => createAiWordHighlighter(aiWords),
+    [aiWords],
+  );
 
   return (
     <ReactMarkdown
       remarkPlugins={[RemarkMath, RemarkGfm, RemarkBreaks]}
       rehypePlugins={[
         RehypeKatex,
+        aiWordHighlighter,
         [
           RehypeHighlight,
           {
