@@ -40,6 +40,82 @@ const config = getClientConfig();
 const isOpenAIModel = (model?: LLMModel) =>
   model?.provider?.providerName === ServiceProvider.OpenAI;
 
+export interface CustomModelEntry {
+  name: string;
+  displayName: string;
+  enabled: boolean;
+}
+
+function normalizeCustomModelEntry(
+  entry: Partial<CustomModelEntry>,
+): CustomModelEntry | null {
+  const name = entry.name?.trim();
+  if (!name) return null;
+
+  const displayName = entry.displayName?.trim() || name;
+
+  return {
+    name,
+    displayName,
+    enabled: entry.enabled ?? true,
+  };
+}
+
+export function parseCustomModelEntries(
+  customModels: string,
+): CustomModelEntry[] {
+  return customModels
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => {
+      const enabled = !item.startsWith("-");
+      const nameConfig =
+        item.startsWith("+") || item.startsWith("-") ? item.slice(1) : item;
+      const [name, displayName] = nameConfig.split("=");
+      return normalizeCustomModelEntry({
+        name,
+        displayName,
+        enabled,
+      });
+    })
+    .filter((item): item is CustomModelEntry => item !== null);
+}
+
+export function serializeCustomModelEntries(
+  entries: CustomModelEntry[],
+): string {
+  return entries
+    .map(normalizeCustomModelEntry)
+    .filter((item): item is CustomModelEntry => item !== null)
+    .map((item) => {
+      const displayName =
+        item.displayName && item.displayName !== item.name
+          ? `=${item.displayName}`
+          : "";
+      return `${item.enabled ? "" : "-"}${item.name}${displayName}`;
+    })
+    .join(",");
+}
+
+function withSyncedCustomModels<
+  T extends {
+    customModels: string;
+    customModelEntries?: CustomModelEntry[];
+  },
+>(state: T): T {
+  const entries =
+    state.customModelEntries && state.customModelEntries.length > 0
+      ? state.customModelEntries
+      : parseCustomModelEntries(state.customModels ?? "");
+
+  return {
+    ...state,
+    customModelEntries: entries,
+    customModels: serializeCustomModelEntries(entries),
+  } as T;
+}
+
 export const DEFAULT_CONFIG = {
   lastUpdate: Date.now(), // timestamp, to merge state
 
@@ -63,6 +139,7 @@ export const DEFAULT_CONFIG = {
   hideBuiltinMasks: false, // dont add builtin masks
 
   customModels: "",
+  customModelEntries: [] as CustomModelEntry[],
   models: DEFAULT_MODELS.filter(isOpenAIModel) as any as LLMModel[],
 
   modelConfig: {
@@ -164,10 +241,10 @@ export const ModalConfigValidator = {
 };
 
 export const useAppConfig = createPersistStore(
-  { ...DEFAULT_CONFIG },
+  withSyncedCustomModels({ ...DEFAULT_CONFIG }),
   (set, get) => ({
     reset() {
-      set(() => ({ ...DEFAULT_CONFIG }));
+      set(() => withSyncedCustomModels({ ...DEFAULT_CONFIG }));
     },
 
     mergeModels(newModels: LLMModel[]) {
@@ -197,7 +274,7 @@ export const useAppConfig = createPersistStore(
   }),
   {
     name: StoreKey.Config,
-    version: 4.1,
+    version: 4.2,
 
     merge(persistedState, currentState) {
       const state = persistedState as ChatConfig | undefined;
@@ -210,7 +287,11 @@ export const useAppConfig = createPersistStore(
         if (idx !== -1) models[idx] = pModel;
         else models.push(pModel);
       });
-      return { ...currentState, ...state, models: models };
+      return withSyncedCustomModels({
+        ...currentState,
+        ...state,
+        models: models,
+      });
     },
 
     migrate(persistedState, version) {
@@ -257,6 +338,12 @@ export const useAppConfig = createPersistStore(
           DEFAULT_CONFIG.modelConfig.compressProviderName;
       }
 
+      if (version < 4.2) {
+        state.customModelEntries = parseCustomModelEntries(
+          state.customModels ?? "",
+        );
+      }
+
       state.models = (state.models ?? []).filter(isOpenAIModel);
       state.modelConfig.providerName = ServiceProvider.OpenAI;
       state.modelConfig.compressProviderName =
@@ -265,7 +352,7 @@ export const useAppConfig = createPersistStore(
           : "";
       state.realtimeConfig.provider = ServiceProvider.OpenAI;
 
-      return state as any;
+      return withSyncedCustomModels(state) as any;
     },
   },
 );

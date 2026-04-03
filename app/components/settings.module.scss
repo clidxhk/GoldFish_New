@@ -78,3 +78,72 @@
     overflow:visible ;
   }
 }
+
+.custom-model-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.custom-model-input {
+  width: 100%;
+  max-width: 100%;
+  text-align: left;
+}
+
+.custom-model-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.custom-model-modal {
+  min-height: 40vh;
+}
+
+.custom-model-list {
+  border: var(--border-in-light);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.custom-model-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+
+  &:not(:last-child) {
+    border-bottom: var(--border-in-light);
+  }
+}
+
+.custom-model-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.custom-model-display-name {
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1.8;
+  word-break: break-all;
+}
+
+.custom-model-api-name {
+  font-size: 12px;
+  opacity: 0.8;
+  word-break: break-all;
+}
+
+.custom-model-actions {
+  display: flex;
+  align-items: center;
+}
+
+.custom-model-empty {
+  padding: 16px;
+  font-size: 14px;
+  opacity: 0.8;
+}

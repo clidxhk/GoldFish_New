@@ -9,6 +9,7 @@ import CopyIcon from "../icons/copy.svg";
 import ClearIcon from "../icons/clear.svg";
 import LoadingIcon from "../icons/three-dots.svg";
 import EditIcon from "../icons/edit.svg";
+import DeleteIcon from "../icons/delete.svg";
 import FireIcon from "../icons/fire.svg";
 import EyeIcon from "../icons/eye.svg";
 import DownloadIcon from "../icons/download.svg";
@@ -35,12 +36,14 @@ import { ModelConfigList } from "./model-config";
 
 import { IconButton } from "./button";
 import {
+  CustomModelEntry,
   SubmitKey,
   useChatStore,
   Theme,
   useUpdateStore,
   useAccessStore,
   useAppConfig,
+  serializeCustomModelEntries,
 } from "../store";
 
 import Locale, {
@@ -73,6 +76,12 @@ import { useMaskStore } from "../store/mask";
 import { ProviderType } from "../utils/cloud";
 import { TTSConfigList } from "./tts-config";
 import { RealtimeConfigList } from "./realtime-chat/realtime-config";
+import { collectModels } from "../utils/model";
+
+type CollectedModel = ReturnType<typeof collectModels>[number];
+type OpenAICollectedModel = CollectedModel & {
+  provider: NonNullable<CollectedModel["provider"]>;
+};
 
 function EditPromptModal(props: { id: string; onClose: () => void }) {
   const promptStore = usePromptStore();
@@ -224,6 +233,68 @@ function UserPromptModal(props: { onClose?: () => void }) {
           onClose={() => setEditingPromptId(undefined)}
         />
       )}
+    </div>
+  );
+}
+
+function CustomModelModal(props: {
+  models: OpenAICollectedModel[];
+  onDelete: (model: OpenAICollectedModel) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="modal-mask">
+      <Modal
+        title={Locale.Settings.Access.CustomModel.ListTitle}
+        onClose={props.onClose}
+        actions={[
+          <IconButton
+            key="confirm"
+            onClick={props.onClose}
+            text={Locale.UI.Confirm}
+            bordered
+          />,
+        ]}
+      >
+        <div className={styles["custom-model-modal"]}>
+          <div className={styles["custom-model-list"]}>
+            {props.models.length > 0 ? (
+              props.models.map((model) => (
+                <div
+                  className={styles["custom-model-item"]}
+                  key={`${model.name}@${model.provider?.id ?? "openai"}`}
+                >
+                  <div className={styles["custom-model-info"]}>
+                    <div className={styles["custom-model-display-name"]}>
+                      {model.displayName || model.name}
+                    </div>
+                    <div className={styles["custom-model-api-name"]}>
+                      {Locale.Settings.Access.CustomModel.ApiNameLabel}:{" "}
+                      {model.name}
+                    </div>
+                    <div className={styles["custom-model-api-name"]}>
+                      {Locale.Settings.Access.CustomModel.DisplayNameLabel}:{" "}
+                      {model.displayName || model.name}
+                    </div>
+                  </div>
+                  <div className={styles["custom-model-actions"]}>
+                    <IconButton
+                      icon={<DeleteIcon />}
+                      bordered
+                      title={Locale.Settings.Access.CustomModel.Delete}
+                      onClick={() => props.onDelete(model)}
+                    />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className={styles["custom-model-empty"]}>
+                {Locale.Settings.Access.CustomModel.Empty}
+              </div>
+            )}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
@@ -620,6 +691,91 @@ export function Settings() {
   const builtinCount = SearchService.count.builtin;
   const customCount = promptStore.getUserPrompts().length ?? 0;
   const [shouldShowPromptModal, setShowPromptModal] = useState(false);
+  const [shouldShowCustomModelModal, setShowCustomModelModal] = useState(false);
+  const [customModelNameInput, setCustomModelNameInput] = useState("");
+  const [customModelDisplayNameInput, setCustomModelDisplayNameInput] =
+    useState("");
+
+  const updateCustomModelEntries = (entries: CustomModelEntry[]) => {
+    const normalizedEntries = entries
+      .map((entry) => ({
+        name: entry.name.trim(),
+        displayName: entry.displayName.trim() || entry.name.trim(),
+        enabled: entry.enabled,
+      }))
+      .filter((entry) => !!entry.name);
+
+    config.update((config) => {
+      config.customModelEntries = normalizedEntries;
+      config.customModels = serializeCustomModelEntries(normalizedEntries);
+    });
+  };
+
+  const customModels = useMemo(
+    () =>
+      collectModels(config.models, config.customModels).filter(
+        (model): model is OpenAICollectedModel =>
+          model.available &&
+          !!model.provider &&
+          model.provider.providerName === ServiceProvider.OpenAI,
+      ),
+    [config.customModels, config.models],
+  );
+
+  const saveCustomModel = () => {
+    const name = customModelNameInput.trim();
+    const displayName = customModelDisplayNameInput.trim() || name;
+
+    if (!name) {
+      showToast(Locale.Settings.Access.CustomModel.NameRequired);
+      return;
+    }
+
+    const nextEntries = config.customModelEntries.slice();
+    const existingIndex = nextEntries.findIndex((entry) => entry.name === name);
+    const nextEntry = { name, displayName, enabled: true };
+
+    if (existingIndex >= 0) {
+      nextEntries[existingIndex] = nextEntry;
+    } else {
+      nextEntries.unshift(nextEntry);
+    }
+
+    updateCustomModelEntries(nextEntries);
+    setCustomModelNameInput("");
+    setCustomModelDisplayNameInput("");
+    showToast(Locale.Settings.Access.CustomModel.Saved);
+  };
+
+  const deleteCustomModel = (model: OpenAICollectedModel) => {
+    const nextEntries = config.customModelEntries.slice();
+    const existingIndex = nextEntries.findIndex(
+      (entry) => entry.name === model.name,
+    );
+    const isProvidedModel = config.models.some(
+      (item) =>
+        item.name === model.name &&
+        item.provider?.providerName === ServiceProvider.OpenAI,
+    );
+
+    if (isProvidedModel) {
+      const disabledEntry: CustomModelEntry = {
+        name: model.name,
+        displayName: model.displayName || model.name,
+        enabled: false,
+      };
+
+      if (existingIndex >= 0) {
+        nextEntries[existingIndex] = disabledEntry;
+      } else {
+        nextEntries.unshift(disabledEntry);
+      }
+    } else if (existingIndex >= 0) {
+      nextEntries.splice(existingIndex, 1);
+    }
+
+    updateCustomModelEntries(nextEntries);
+  };
 
   const showUsage = accessStore.isAuthorized();
   useEffect(() => {
@@ -1111,18 +1267,50 @@ export function Settings() {
             subTitle={Locale.Settings.Access.CustomModel.SubTitle}
             vertical={true}
           >
-            <input
-              aria-label={Locale.Settings.Access.CustomModel.Title}
-              style={{ width: "100%", maxWidth: "unset", textAlign: "left" }}
-              type="text"
-              value={config.customModels}
-              placeholder="model1,model2,model3"
-              onChange={(e) =>
-                config.update(
-                  (config) => (config.customModels = e.currentTarget.value),
-                )
-              }
-            ></input>
+            <div className={styles["custom-model-editor"]}>
+              <input
+                aria-label={Locale.Settings.Access.CustomModel.ApiName}
+                className={styles["custom-model-input"]}
+                type="text"
+                value={customModelNameInput}
+                placeholder={Locale.Settings.Access.CustomModel.ApiName}
+                onChange={(e) => setCustomModelNameInput(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    saveCustomModel();
+                  }
+                }}
+              ></input>
+              <input
+                aria-label={Locale.Settings.Access.CustomModel.DisplayName}
+                className={styles["custom-model-input"]}
+                type="text"
+                value={customModelDisplayNameInput}
+                placeholder={Locale.Settings.Access.CustomModel.DisplayName}
+                onChange={(e) =>
+                  setCustomModelDisplayNameInput(e.currentTarget.value)
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    saveCustomModel();
+                  }
+                }}
+              ></input>
+              <div className={styles["custom-model-buttons"]}>
+                <IconButton
+                  icon={<ConfirmIcon />}
+                  bordered
+                  title={Locale.Settings.Access.CustomModel.Save}
+                  onClick={saveCustomModel}
+                />
+                <IconButton
+                  icon={<EditIcon />}
+                  bordered
+                  title={Locale.Settings.Access.CustomModel.ListTitle}
+                  onClick={() => setShowCustomModelModal(true)}
+                />
+              </div>
+            </div>
           </ListItem>
         </List>
 
@@ -1139,6 +1327,13 @@ export function Settings() {
 
         {shouldShowPromptModal && (
           <UserPromptModal onClose={() => setShowPromptModal(false)} />
+        )}
+        {shouldShowCustomModelModal && (
+          <CustomModelModal
+            models={customModels}
+            onDelete={deleteCustomModel}
+            onClose={() => setShowCustomModelModal(false)}
+          />
         )}
         <List>
           <RealtimeConfigList

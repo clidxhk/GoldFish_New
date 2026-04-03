@@ -536,7 +536,17 @@ const cn = {
       },
       CustomModel: {
         Title: "自定义模型名",
-        SubTitle: "增加自定义模型可选项，使用英文逗号隔开",
+        SubTitle: "将自定义模型持久化保存到列表中，并可统一管理",
+        ApiName: "API 模型名",
+        DisplayName: "本地显示名",
+        ApiNameLabel: "API 模型名",
+        DisplayNameLabel: "本地显示名",
+        Save: "保存模型",
+        ListTitle: "模型列表",
+        Delete: "删除模型",
+        Empty: "当前没有可管理的模型",
+        Saved: "模型已保存",
+        NameRequired: "请输入模型名",
       },
       AI302: {
         ApiKey: {

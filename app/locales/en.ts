@@ -520,7 +520,18 @@ const en: LocaleType = {
       },
       CustomModel: {
         Title: "Custom Models",
-        SubTitle: "Custom model options, seperated by comma",
+        SubTitle:
+          "Save custom models to a persistent list and manage them later",
+        ApiName: "Model name for API",
+        DisplayName: "Local display name",
+        ApiNameLabel: "API model name",
+        DisplayNameLabel: "Local display name",
+        Save: "Save model",
+        ListTitle: "Model List",
+        Delete: "Delete model",
+        Empty: "No models available",
+        Saved: "Model saved",
+        NameRequired: "Please enter a model name",
       },
       Google: {
         ApiKey: {
