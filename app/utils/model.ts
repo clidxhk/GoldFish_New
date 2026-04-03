@@ -24,6 +24,17 @@ const customProvider = (providerName: string) => ({
 
 const openAIProvider = customProvider(ServiceProvider.OpenAI);
 
+function getProviderId(provider?: LLMModel["provider"]) {
+  return (provider?.id || provider?.providerName || "").toLowerCase();
+}
+
+function isOpenAIProvider(provider?: LLMModel["provider"]) {
+  return (
+    getProviderId(provider) === ServiceProvider.OpenAI.toLowerCase() ||
+    provider?.providerName === ServiceProvider.OpenAI
+  );
+}
+
 /**
  * Sorts an array of models based on specified rules.
  *
@@ -68,9 +79,16 @@ export function collectModelTable(
 
   // default models
   models.forEach((m) => {
+    const providerId = getProviderId(m.provider);
     // using <modelName>@<providerId> as fullName
-    modelTable[`${m.name}@${m?.provider?.id}`] = {
+    modelTable[`${m.name}@${providerId}`] = {
       ...m,
+      provider: m.provider
+        ? {
+            ...m.provider,
+            id: providerId,
+          }
+        : m.provider,
       displayName: m.name, // 'provider' is copied over if it exists
     };
   });
@@ -95,15 +113,16 @@ export function collectModelTable(
         const [customModelName] = getModelProvider(name);
         let count = 0;
         for (const fullName in modelTable) {
-          const [modelName, providerName] = getModelProvider(fullName);
+          const currentModel = modelTable[fullName];
+          const [modelName] = getModelProvider(fullName);
           if (
             customModelName == modelName &&
-            providerName === ServiceProvider.OpenAI.toLowerCase()
+            isOpenAIProvider(currentModel.provider)
           ) {
             count += 1;
-            modelTable[fullName]["available"] = available;
+            currentModel["available"] = available;
             if (displayName) {
-              modelTable[fullName]["displayName"] = displayName;
+              currentModel["displayName"] = displayName;
             }
           }
         }

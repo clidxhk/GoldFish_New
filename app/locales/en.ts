@@ -526,11 +526,13 @@ const en: LocaleType = {
         DisplayName: "Local display name",
         ApiNameLabel: "API model name",
         DisplayNameLabel: "Local display name",
+        OriginalModelLabel: "Original model",
         Save: "Save model",
         ListTitle: "Model List",
         Delete: "Delete model",
         Empty: "No models available",
         Saved: "Model saved",
+        Deleted: "Model deleted",
         NameRequired: "Please enter a model name",
       },
       Google: {

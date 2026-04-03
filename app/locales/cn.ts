@@ -541,11 +541,13 @@ const cn = {
         DisplayName: "本地显示名",
         ApiNameLabel: "API 模型名",
         DisplayNameLabel: "本地显示名",
+        OriginalModelLabel: "原始模型名",
         Save: "保存模型",
         ListTitle: "模型列表",
         Delete: "删除模型",
         Empty: "当前没有可管理的模型",
         Saved: "模型已保存",
+        Deleted: "模型已删除",
         NameRequired: "请输入模型名",
       },
       AI302: {
