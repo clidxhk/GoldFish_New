@@ -37,6 +37,8 @@ export enum Theme {
 }
 
 const config = getClientConfig();
+const isOpenAIModel = (model?: LLMModel) =>
+  model?.provider?.providerName === ServiceProvider.OpenAI;
 
 export const DEFAULT_CONFIG = {
   lastUpdate: Date.now(), // timestamp, to merge state
@@ -61,7 +63,7 @@ export const DEFAULT_CONFIG = {
   hideBuiltinMasks: false, // dont add builtin masks
 
   customModels: "",
-  models: DEFAULT_MODELS as any as LLMModel[],
+  models: DEFAULT_MODELS.filter(isOpenAIModel) as any as LLMModel[],
 
   modelConfig: {
     model: "gpt-4o-mini" as ModelType,
@@ -201,7 +203,7 @@ export const useAppConfig = createPersistStore(
       const state = persistedState as ChatConfig | undefined;
       if (!state) return { ...currentState };
       const models = currentState.models.slice();
-      state.models.forEach((pModel) => {
+      (state.models ?? []).filter(isOpenAIModel).forEach((pModel) => {
         const idx = models.findIndex(
           (v) => v.name === pModel.name && v.provider === pModel.provider,
         );
@@ -254,6 +256,14 @@ export const useAppConfig = createPersistStore(
         state.modelConfig.compressProviderName =
           DEFAULT_CONFIG.modelConfig.compressProviderName;
       }
+
+      state.models = (state.models ?? []).filter(isOpenAIModel);
+      state.modelConfig.providerName = ServiceProvider.OpenAI;
+      state.modelConfig.compressProviderName =
+        state.modelConfig.compressProviderName === ServiceProvider.OpenAI
+          ? ServiceProvider.OpenAI
+          : "";
+      state.realtimeConfig.provider = ServiceProvider.OpenAI;
 
       return state as any;
     },

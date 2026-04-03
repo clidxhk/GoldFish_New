@@ -12,6 +12,7 @@ export const RUNTIME_CONFIG_DOM = "danger-runtime-config";
 export const STABILITY_BASE_URL = "https://api.stability.ai";
 
 export const OPENAI_BASE_URL = "https://api.openai.com";
+export const BAIDU_OATUH_URL = "https://aip.baidubce.com/oauth/2.0/token";
 
 export const CACHE_URL_PREFIX = "/api/cache";
 export const UPLOAD_URL = `${CACHE_URL_PREFIX}/upload`;
@@ -33,8 +34,23 @@ export enum Path {
 
 export enum ApiPath {
   Cors = "",
+  Azure = "/api/azure",
   OpenAI = "/api/openai",
+  Anthropic = "/api/anthropic",
+  Google = "/api/google",
+  Baidu = "/api/baidu",
+  ByteDance = "/api/bytedance",
+  Alibaba = "/api/alibaba",
+  Tencent = "/api/tencent",
+  Moonshot = "/api/moonshot",
+  Iflytek = "/api/iflytek",
+  Stability = "/api/stability",
   Artifacts = "/api/artifacts",
+  XAI = "/api/xai",
+  ChatGLM = "/api/chatglm",
+  DeepSeek = "/api/deepseek",
+  SiliconFlow = "/api/siliconflow",
+  "302.AI" = "/api/302ai",
 }
 
 export enum SlotID {
@@ -133,6 +149,67 @@ export const OpenaiPath = {
   UsagePath: "dashboard/billing/usage",
   SubsPath: "dashboard/billing/subscription",
   ListModelPath: "v1/models",
+};
+
+export const Azure = {
+  ChatPath: (deployName: string, apiVersion: string) =>
+    `deployments/${deployName}/chat/completions?api-version=${apiVersion}`,
+  ImagePath: (deployName: string, apiVersion: string) =>
+    `deployments/${deployName}/images/generations?api-version=${apiVersion}`,
+  ExampleEndpoint: "https://{resource-url}/openai",
+};
+
+export const Google = {
+  ExampleEndpoint: "https://generativelanguage.googleapis.com/",
+};
+
+export const Anthropic = {
+  ExampleEndpoint: "https://api.anthropic.com",
+  Vision: "2023-06-01",
+};
+
+export const Baidu = {
+  ExampleEndpoint: "https://aip.baidubce.com",
+};
+
+export const ByteDance = {
+  ExampleEndpoint: "https://ark.cn-beijing.volces.com/api/",
+};
+
+export const Alibaba = {
+  ExampleEndpoint: "https://dashscope.aliyuncs.com/api/",
+};
+
+export const Tencent = {
+  ExampleEndpoint: "https://hunyuan.tencentcloudapi.com",
+};
+
+export const Moonshot = {
+  ExampleEndpoint: "https://api.moonshot.ai",
+};
+
+export const Iflytek = {
+  ExampleEndpoint: "https://spark-api-open.xf-yun.com",
+};
+
+export const DeepSeek = {
+  ExampleEndpoint: "https://api.deepseek.com",
+};
+
+export const XAI = {
+  ExampleEndpoint: "https://api.x.ai",
+};
+
+export const ChatGLM = {
+  ExampleEndpoint: "https://open.bigmodel.cn",
+};
+
+export const SiliconFlow = {
+  ExampleEndpoint: "https://api.siliconflow.cn",
+};
+
+export const AI302 = {
+  ExampleEndpoint: "https://api.302.ai",
 };
 
 export const DEFAULT_INPUT_TEMPLATE = `{{input}}`; // input / time / model / lang

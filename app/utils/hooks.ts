@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useAccessStore, useAppConfig } from "../store";
+import { ServiceProvider } from "../constant";
 import { collectModelsWithDefaultModel } from "./model";
 
 export function useAllModels() {
@@ -10,6 +11,8 @@ export function useAllModels() {
       configStore.models,
       [configStore.customModels, accessStore.customModels].join(","),
       accessStore.defaultModel,
+    ).filter(
+      (model) => model.provider?.providerName === ServiceProvider.OpenAI,
     );
   }, [
     accessStore.customModels,

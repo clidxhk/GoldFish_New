@@ -22,43 +22,8 @@ const DEFAULT_ACCESS_STATE = {
   provider: ServiceProvider.OpenAI,
   openaiUrl: DEFAULT_OPENAI_URL,
   openaiApiKey: "",
-  azureUrl: "",
-  azureApiKey: "",
-  azureApiVersion: "",
-  googleUrl: "",
-  googleApiKey: "",
-  googleApiVersion: "",
-  googleSafetySettings: "",
-  anthropicUrl: "",
-  anthropicApiKey: "",
-  anthropicApiVersion: "",
-  baiduUrl: "",
-  baiduApiKey: "",
-  baiduSecretKey: "",
-  bytedanceUrl: "",
-  bytedanceApiKey: "",
-  alibabaUrl: "",
-  alibabaApiKey: "",
-  moonshotUrl: "",
-  moonshotApiKey: "",
   stabilityUrl: "",
   stabilityApiKey: "",
-  tencentUrl: "",
-  tencentSecretKey: "",
-  tencentSecretId: "",
-  iflytekUrl: "",
-  iflytekApiKey: "",
-  iflytekApiSecret: "",
-  deepseekUrl: "",
-  deepseekApiKey: "",
-  xaiUrl: "",
-  xaiApiKey: "",
-  chatglmUrl: "",
-  chatglmApiKey: "",
-  siliconflowUrl: "",
-  siliconflowApiKey: "",
-  ai302Url: "",
-  ai302ApiKey: "",
   needCode: true,
   hideUserApiKey: false,
   hideBalanceQuery: false,
@@ -88,14 +53,10 @@ export const useAccessStore = createPersistStore(
     isValidOpenAI() {
       return ensure(get(), ["openaiApiKey"]);
     },
-    isValidAzure() {
-      return ensure(get(), ["azureUrl", "azureApiKey", "azureApiVersion"]);
-    },
     isAuthorized() {
       this.fetch();
       return (
         this.isValidOpenAI() ||
-        this.isValidAzure() ||
         !this.enabledAccessControl() ||
         (this.enabledAccessControl() && ensure(get(), ["accessCode"]))
       );
@@ -114,9 +75,9 @@ export const useAccessStore = createPersistStore(
         .then((res) => {
           const defaultModel = res.defaultModel ?? "";
           if (defaultModel !== "") {
-            const [model, providerName] = getModelProvider(defaultModel);
+            const [model] = getModelProvider(defaultModel);
             DEFAULT_CONFIG.modelConfig.model = model;
-            DEFAULT_CONFIG.modelConfig.providerName = providerName as any;
+            DEFAULT_CONFIG.modelConfig.providerName = ServiceProvider.OpenAI;
           }
 
           return res;
@@ -135,7 +96,7 @@ export const useAccessStore = createPersistStore(
   }),
   {
     name: StoreKey.Access,
-    version: 3,
+    version: 4,
     migrate(persistedState, version) {
       const state = persistedState as any;
       if (version < 2) {

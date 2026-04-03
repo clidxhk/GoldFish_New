@@ -5,21 +5,17 @@ import Locale from "../locales";
 import { InputRange } from "./input-range";
 import { ListItem, Select } from "./ui-lib";
 import { useAllModels } from "../utils/hooks";
-import { groupBy } from "lodash-es";
 import styles from "./model-config.module.scss";
-import { getModelProvider } from "../utils/model";
 
 export function ModelConfigList(props: {
   modelConfig: ModelConfig;
   updateConfig: (updater: (config: ModelConfig) => void) => void;
 }) {
-  const allModels = useAllModels();
-  const groupModels = groupBy(
-    allModels.filter((v) => v.available),
-    "provider.providerName",
+  const allModels = useAllModels().filter(
+    (v) => v.available && v.provider?.providerName === ServiceProvider.OpenAI,
   );
-  const value = `${props.modelConfig.model}@${props.modelConfig?.providerName}`;
-  const compressModelValue = `${props.modelConfig.compressModel}@${props.modelConfig?.compressProviderName}`;
+  const value = props.modelConfig.model;
+  const compressModelValue = props.modelConfig.compressModel;
 
   return (
     <>
@@ -29,23 +25,16 @@ export function ModelConfigList(props: {
           value={value}
           align="left"
           onChange={(e) => {
-            const [model, providerName] = getModelProvider(
-              e.currentTarget.value,
-            );
             props.updateConfig((config) => {
-              config.model = ModalConfigValidator.model(model);
-              config.providerName = providerName as ServiceProvider;
+              config.model = ModalConfigValidator.model(e.currentTarget.value);
+              config.providerName = ServiceProvider.OpenAI;
             });
           }}
         >
-          {Object.keys(groupModels).map((providerName, index) => (
-            <optgroup label={providerName} key={index}>
-              {groupModels[providerName].map((v, i) => (
-                <option value={`${v.name}@${v.provider?.providerName}`} key={i}>
-                  {v.displayName}
-                </option>
-              ))}
-            </optgroup>
+          {allModels.map((v, i) => (
+            <option value={v.name} key={i}>
+              {v.displayName}
+            </option>
           ))}
         </Select>
       </ListItem>
@@ -247,22 +236,19 @@ export function ModelConfigList(props: {
           aria-label={Locale.Settings.CompressModel.Title}
           value={compressModelValue}
           onChange={(e) => {
-            const [model, providerName] = getModelProvider(
-              e.currentTarget.value,
-            );
             props.updateConfig((config) => {
-              config.compressModel = ModalConfigValidator.model(model);
-              config.compressProviderName = providerName as ServiceProvider;
+              config.compressModel = ModalConfigValidator.model(
+                e.currentTarget.value,
+              );
+              config.compressProviderName = ServiceProvider.OpenAI;
             });
           }}
         >
-          {allModels
-            .filter((v) => v.available)
-            .map((v, i) => (
-              <option value={`${v.name}@${v.provider?.providerName}`} key={i}>
-                {v.displayName}({v.provider?.providerName})
-              </option>
-            ))}
+          {allModels.map((v, i) => (
+            <option value={v.name} key={i}>
+              {v.displayName}
+            </option>
+          ))}
         </Select>
       </ListItem>
     </>

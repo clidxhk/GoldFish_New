@@ -22,6 +22,8 @@ const customProvider = (providerName: string) => ({
   sorted: CustomSeq.next(providerName),
 });
 
+const openAIProvider = customProvider(ServiceProvider.OpenAI);
+
 /**
  * Sorts an array of models based on specified rules.
  *
@@ -90,22 +92,16 @@ export function collectModelTable(
         );
       } else {
         // 1. find model by name, and set available value
-        const [customModelName, customProviderName] = getModelProvider(name);
+        const [customModelName] = getModelProvider(name);
         let count = 0;
         for (const fullName in modelTable) {
           const [modelName, providerName] = getModelProvider(fullName);
           if (
             customModelName == modelName &&
-            (customProviderName === undefined ||
-              customProviderName === providerName)
+            providerName === ServiceProvider.OpenAI.toLowerCase()
           ) {
             count += 1;
             modelTable[fullName]["available"] = available;
-            // swap name and displayName for bytedance
-            if (providerName === "bytedance") {
-              [name, displayName] = [displayName, modelName];
-              modelTable[fullName]["name"] = name;
-            }
             if (displayName) {
               modelTable[fullName]["displayName"] = displayName;
             }
@@ -113,20 +109,14 @@ export function collectModelTable(
         }
         // 2. if model not exists, create new model with available value
         if (count === 0) {
-          let [customModelName, customProviderName] = getModelProvider(name);
-          const provider = customProvider(
-            customProviderName || customModelName,
-          );
-          // swap name and displayName for bytedance
-          if (displayName && provider.providerName == "ByteDance") {
-            [customModelName, displayName] = [displayName, customModelName];
-          }
-          modelTable[`${customModelName}@${provider?.id}`] = {
+          const [customModelName] = getModelProvider(name);
+          const provider = openAIProvider;
+          modelTable[`${customModelName}@${provider.id}`] = {
             name: customModelName,
             displayName: displayName || customModelName,
             available,
-            provider, // Use optional chaining
-            sorted: CustomSeq.next(`${customModelName}@${provider?.id}`),
+            provider,
+            sorted: CustomSeq.next(`${customModelName}@${provider.id}`),
           };
         }
       }
@@ -246,11 +236,6 @@ export function isModelNotavailableInServer(
     ? providerNames
     : [providerNames];
   for (const providerName of providerNamesArray) {
-    // if model provider is bytedance, use model config name to check if not avaliable
-    if (providerName === ServiceProvider.ByteDance) {
-      return !Object.values(modelTable).filter((v) => v.name === modelName)?.[0]
-        ?.available;
-    }
     const fullName = `${modelName}@${providerName.toLowerCase()}`;
     if (modelTable?.[fullName]?.available === true) return false;
   }
