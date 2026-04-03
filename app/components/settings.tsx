@@ -325,10 +325,6 @@ function CustomModelModal(props: {
                           }));
                         }}
                       />
-                      <div className={styles["custom-model-api-name"]}>
-                        {Locale.Settings.Access.CustomModel.OriginalModelLabel}:{" "}
-                        {model.name}
-                      </div>
                     </div>
                     <div className={styles["custom-model-actions"]}>
                       <IconButton
@@ -1383,13 +1379,18 @@ export function Settings() {
               <div className={styles["custom-model-buttons"]}>
                 <IconButton
                   icon={<ConfirmIcon />}
-                  bordered
+                  aria={Locale.Settings.Access.CustomModel.Save}
+                  text={Locale.Settings.Access.CustomModel.Save}
                   title={Locale.Settings.Access.CustomModel.Save}
                   onClick={saveCustomModel}
                 />
                 <IconButton
                   icon={<EditIcon />}
-                  bordered
+                  aria={
+                    Locale.Settings.Access.CustomModel.Title +
+                    Locale.Settings.Prompt.Edit
+                  }
+                  text={Locale.Settings.Prompt.Edit}
                   title={Locale.Settings.Access.CustomModel.ListTitle}
                   onClick={() => setShowCustomModelModal(true)}
                 />
