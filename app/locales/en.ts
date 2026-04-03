@@ -623,6 +623,19 @@ const en: LocaleType = {
         Title: "Randomize Frequency Penalty",
         SubTitle: "Apply random offset to frequency_penalty",
       },
+      RandomPrompt: {
+        Enabled: {
+          Title: "Random Prompt",
+          SubTitle:
+            "Randomly prepend one selected prompt from the existing prompt list before each request",
+        },
+        Selected: {
+          Title: "Prompt Pool",
+          SubTitle: "Select prompts from the existing prompt list",
+          Empty: "No prompts found",
+        },
+        Search: "Search prompts",
+      },
     },
     TTS: {
       Enable: {

@@ -28,6 +28,19 @@ export type GoldfishSamplingField =
   | "presence_penalty"
   | "frequency_penalty";
 
+function normalizeGoldfishPromptList(prompts?: string[]): string[] {
+  const seen = new Set<string>();
+
+  return (prompts ?? [])
+    .map((item) => item?.trim())
+    .filter((item): item is string => !!item)
+    .filter((item) => {
+      if (seen.has(item)) return false;
+      seen.add(item);
+      return true;
+    });
+}
+
 export enum SubmitKey {
   Enter = "Enter",
   CtrlEnter = "Ctrl + Enter",
@@ -171,6 +184,9 @@ export const DEFAULT_CONFIG = {
       top_p: true,
       presence_penalty: true,
       frequency_penalty: true,
+      randomPromptEnabled: false,
+      randomPromptPool: [] as string[],
+      randomPromptSelected: [] as string[],
     },
     template: config?.template ?? DEFAULT_INPUT_TEMPLATE,
     size: "1024x1024" as ModelSize,
@@ -218,6 +234,10 @@ export function normalizeGoldfishConfig(
       0,
       1,
       DEFAULT_CONFIG.modelConfig.goldfish.range,
+    ),
+    randomPromptPool: normalizeGoldfishPromptList(goldfish?.randomPromptPool),
+    randomPromptSelected: normalizeGoldfishPromptList(
+      goldfish?.randomPromptSelected,
     ),
   };
 }

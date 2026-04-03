@@ -633,6 +633,19 @@ const cn = {
         Title: "随机采样 frequency_penalty",
         SubTitle: "对 frequency_penalty 应用随机浮动",
       },
+      RandomPrompt: {
+        Enabled: {
+          Title: "随机提示词",
+          SubTitle:
+            "每次请求前从现有提示词列表中随机抽取一条已选提示词插入到对话最前面",
+        },
+        Selected: {
+          Title: "随机提示词池",
+          SubTitle: "从现有提示词列表中点击选择",
+          Empty: "没有找到提示词",
+        },
+        Search: "搜索提示词",
+      },
     },
     Realtime: {
       Enable: {

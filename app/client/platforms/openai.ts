@@ -116,6 +116,18 @@ function withGoldfishSampling(modelConfig: ModelConfig): ModelConfig {
   return nextConfig;
 }
 
+function getRandomGoldfishPrompt(modelConfig: ModelConfig) {
+  const goldfish = normalizeGoldfishConfig(modelConfig.goldfish);
+  const prompts =
+    goldfish.enabled && goldfish.randomPromptEnabled
+      ? goldfish.randomPromptSelected
+      : [];
+
+  if (prompts.length === 0) return "";
+
+  return prompts[Math.floor(Math.random() * prompts.length)] ?? "";
+}
+
 export class ChatGPTApi implements LLMApi {
   private disableListModels = true;
 
@@ -262,6 +274,14 @@ export class ChatGPTApi implements LLMApi {
         // max_tokens: Math.max(modelConfig.max_tokens, 1024),
         // Please do not ask me why not send max_tokens, no reason, this param is just shit, I dont want to explain anymore.
       };
+
+      const randomGoldfishPrompt = getRandomGoldfishPrompt(modelConfig);
+      if (randomGoldfishPrompt) {
+        requestPayload.messages.unshift({
+          role: isO1OrO3 || isGpt5 ? "developer" : "system",
+          content: randomGoldfishPrompt,
+        });
+      }
 
       if (isGpt5) {
         // Remove max_tokens if present

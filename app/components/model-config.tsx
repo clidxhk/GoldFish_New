@@ -6,16 +6,43 @@ import { InputRange } from "./input-range";
 import { ListItem, Select } from "./ui-lib";
 import { useAllModels } from "../utils/hooks";
 import styles from "./model-config.module.scss";
+import { SearchService, usePromptStore } from "../store/prompt";
+import { useMemo, useState } from "react";
 
 export function ModelConfigList(props: {
   modelConfig: ModelConfig;
   updateConfig: (updater: (config: ModelConfig) => void) => void;
 }) {
+  const promptStore = usePromptStore();
   const allModels = useAllModels().filter(
     (v) => v.available && v.provider?.providerName === ServiceProvider.OpenAI,
   );
   const value = props.modelConfig.model;
   const compressModelValue = props.modelConfig.compressModel;
+  const [promptSearch, setPromptSearch] = useState("");
+  const allPrompts = useMemo(() => {
+    const userPrompts = promptStore.getUserPrompts();
+    const builtinPrompts = SearchService.builtinPrompts;
+    const prompts = userPrompts.concat(builtinPrompts);
+    const seen = new Set<string>();
+
+    return prompts.filter((prompt) => {
+      const key = `${prompt.title}\n${prompt.content}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [promptStore, promptStore.prompts]);
+  const filteredPrompts = useMemo(() => {
+    const keyword = promptSearch.trim().toLowerCase();
+    if (!keyword) return allPrompts;
+
+    return allPrompts.filter(
+      (prompt) =>
+        prompt.title.toLowerCase().includes(keyword) ||
+        prompt.content.toLowerCase().includes(keyword),
+    );
+  }, [allPrompts, promptSearch]);
 
   return (
     <>
@@ -253,6 +280,96 @@ export function ModelConfigList(props: {
                 }
               ></input>
             </ListItem>
+
+            <ListItem
+              title={Locale.Settings.Goldfish.RandomPrompt.Enabled.Title}
+              subTitle={Locale.Settings.Goldfish.RandomPrompt.Enabled.SubTitle}
+            >
+              <input
+                aria-label={Locale.Settings.Goldfish.RandomPrompt.Enabled.Title}
+                type="checkbox"
+                checked={!!props.modelConfig.goldfish.randomPromptEnabled}
+                onChange={(e) =>
+                  props.updateConfig(
+                    (config) =>
+                      (config.goldfish.randomPromptEnabled =
+                        e.currentTarget.checked),
+                  )
+                }
+              ></input>
+            </ListItem>
+
+            {props.modelConfig.goldfish.randomPromptEnabled && (
+              <>
+                <ListItem
+                  title={Locale.Settings.Goldfish.RandomPrompt.Selected.Title}
+                  subTitle={
+                    Locale.Settings.Goldfish.RandomPrompt.Selected.SubTitle
+                  }
+                  vertical
+                >
+                  <input
+                    aria-label={Locale.Settings.Goldfish.RandomPrompt.Search}
+                    className={styles["random-prompt-search"]}
+                    type="text"
+                    value={promptSearch}
+                    placeholder={Locale.Settings.Goldfish.RandomPrompt.Search}
+                    onChange={(e) => setPromptSearch(e.currentTarget.value)}
+                  />
+                  <div className={styles["random-prompt-pool-list"]}>
+                    {filteredPrompts.length > 0 ? (
+                      filteredPrompts.map((prompt) => {
+                        const selected =
+                          props.modelConfig.goldfish.randomPromptSelected.includes(
+                            prompt.content,
+                          );
+
+                        return (
+                          <button
+                            key={prompt.id}
+                            type="button"
+                            className={styles["random-prompt-chip"]}
+                            data-selected={selected}
+                            title={prompt.content}
+                            onClick={() => {
+                              props.updateConfig((config) => {
+                                const selectedSet = new Set(
+                                  config.goldfish.randomPromptSelected,
+                                );
+
+                                if (selectedSet.has(prompt.content)) {
+                                  selectedSet.delete(prompt.content);
+                                } else {
+                                  selectedSet.add(prompt.content);
+                                }
+
+                                config.goldfish.randomPromptSelected =
+                                  Array.from(selectedSet);
+                              });
+                            }}
+                          >
+                            <span
+                              className={styles["random-prompt-chip-title"]}
+                            >
+                              {prompt.title}
+                            </span>
+                            <span
+                              className={styles["random-prompt-chip-content"]}
+                            >
+                              {prompt.content}
+                            </span>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className={styles["random-prompt-empty"]}>
+                        {Locale.Settings.Goldfish.RandomPrompt.Selected.Empty}
+                      </div>
+                    )}
+                  </div>
+                </ListItem>
+              </>
+            )}
           </>
         )}
 
