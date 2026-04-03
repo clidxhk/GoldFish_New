@@ -154,6 +154,20 @@ function withGoldfishSampling(
     );
   }
 
+  if (goldfish.randomModelEnabled && goldfish.randomModelSelected.length > 0) {
+    if (responseIndex !== undefined && responseIndex >= 0) {
+      nextConfig.model =
+        goldfish.randomModelSelected[
+          responseIndex % goldfish.randomModelSelected.length
+        ] ?? nextConfig.model;
+    } else {
+      nextConfig.model =
+        goldfish.randomModelSelected[
+          Math.floor(Math.random() * goldfish.randomModelSelected.length)
+        ] ?? nextConfig.model;
+    }
+  }
+
   return nextConfig;
 }
 
@@ -292,21 +306,22 @@ export class ChatGPTApi implements LLMApi {
       options.config.responseIndex,
       options.config.responseCount,
     );
+    const resolvedModel = modelConfig.model;
 
     let requestPayload: RequestPayload | DalleRequestPayload;
 
-    const isDalle3 = _isDalle3(options.config.model);
+    const isDalle3 = _isDalle3(resolvedModel);
     const isO1OrO3 =
-      options.config.model.startsWith("o1") ||
-      options.config.model.startsWith("o3") ||
-      options.config.model.startsWith("o4-mini");
-    const isGpt5 = options.config.model.startsWith("gpt-5");
+      resolvedModel.startsWith("o1") ||
+      resolvedModel.startsWith("o3") ||
+      resolvedModel.startsWith("o4-mini");
+    const isGpt5 = resolvedModel.startsWith("gpt-5");
     if (isDalle3) {
       const prompt = getMessageTextContent(
         options.messages.slice(-1)?.pop() as any,
       );
       requestPayload = {
-        model: options.config.model,
+        model: resolvedModel,
         prompt,
         // URLs are only valid for 60 minutes after the image has been generated.
         response_format: "b64_json", // using b64_json, and save image in CacheStorage
@@ -316,7 +331,7 @@ export class ChatGPTApi implements LLMApi {
         style: options.config?.style ?? "vivid",
       };
     } else {
-      const visionModel = isVisionModel(options.config.model);
+      const visionModel = isVisionModel(resolvedModel);
       const messages: ChatOptions["messages"] = [];
       for (const v of options.messages) {
         const content = visionModel

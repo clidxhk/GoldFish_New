@@ -41,6 +41,19 @@ function normalizeGoldfishPromptList(prompts?: string[]): string[] {
     });
 }
 
+function normalizeGoldfishModelList(models?: string[]): string[] {
+  const seen = new Set<string>();
+
+  return (models ?? [])
+    .map((item) => item?.trim())
+    .filter((item): item is string => !!item)
+    .filter((item) => {
+      if (seen.has(item)) return false;
+      seen.add(item);
+      return true;
+    });
+}
+
 export enum SubmitKey {
   Enter = "Enter",
   CtrlEnter = "Ctrl + Enter",
@@ -185,6 +198,8 @@ export const DEFAULT_CONFIG = {
       top_p: true,
       presence_penalty: true,
       frequency_penalty: true,
+      randomModelEnabled: false,
+      randomModelSelected: [] as string[],
       randomPromptEnabled: false,
       randomPromptPool: [] as string[],
       randomPromptSelected: [] as string[],
@@ -235,6 +250,9 @@ export function normalizeGoldfishConfig(
       0,
       1,
       DEFAULT_CONFIG.modelConfig.goldfish.range,
+    ),
+    randomModelSelected: normalizeGoldfishModelList(
+      goldfish?.randomModelSelected,
     ),
     randomPromptPool: normalizeGoldfishPromptList(goldfish?.randomPromptPool),
     randomPromptSelected: normalizeGoldfishPromptList(

@@ -628,6 +628,19 @@ const en: LocaleType = {
         Title: "Randomize Frequency Penalty",
         SubTitle: "Apply random offset to frequency_penalty",
       },
+      RandomModel: {
+        Enabled: {
+          Title: "Random Model",
+          SubTitle:
+            "Randomly choose one selected model from the current model list before each request",
+        },
+        Selected: {
+          Title: "Model Pool",
+          SubTitle: "Select models from the current model list",
+          Empty: "No models found",
+        },
+        Search: "Search models",
+      },
       RandomPrompt: {
         Enabled: {
           Title: "Random Prompt",

@@ -638,6 +638,18 @@ const cn = {
         Title: "随机采样 frequency_penalty",
         SubTitle: "对 frequency_penalty 应用随机浮动",
       },
+      RandomModel: {
+        Enabled: {
+          Title: "随机模型",
+          SubTitle: "每次请求前从当前模型列表中随机抽取一个已选模型来发起请求",
+        },
+        Selected: {
+          Title: "随机模型池",
+          SubTitle: "从现有模型列表中点击选择",
+          Empty: "没有找到模型",
+        },
+        Search: "搜索模型",
+      },
       RandomPrompt: {
         Enabled: {
           Title: "随机提示词",

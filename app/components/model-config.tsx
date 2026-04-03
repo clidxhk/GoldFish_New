@@ -29,6 +29,7 @@ export function ModelConfigList(props: {
   const value = modelConfig.model;
   const compressModelValue = modelConfig.compressModel;
   const [promptSearch, setPromptSearch] = useState("");
+  const [modelSearch, setModelSearch] = useState("");
   const allPrompts = useMemo(() => {
     const userPrompts = promptStore.getUserPrompts();
     const builtinPrompts = SearchService.builtinPrompts;
@@ -54,6 +55,18 @@ export function ModelConfigList(props: {
         prompt.content.toLowerCase().includes(keyword),
     );
   }, [allPrompts, promptSearch]);
+  const filteredModels = useMemo(() => {
+    const keyword = modelSearch.trim().toLowerCase();
+    if (!keyword) return allModels;
+
+    return allModels.filter((model) => {
+      const displayName = (model.displayName ?? model.name).toLowerCase();
+      return (
+        model.name.toLowerCase().includes(keyword) ||
+        displayName.includes(keyword)
+      );
+    });
+  }, [allModels, modelSearch]);
 
   return (
     <>
@@ -164,6 +177,89 @@ export function ModelConfigList(props: {
               }
             ></input>
           </ListItem>
+
+          <ListItem
+            title={Locale.Settings.Goldfish.RandomModel.Enabled.Title}
+            subTitle={Locale.Settings.Goldfish.RandomModel.Enabled.SubTitle}
+          >
+            <input
+              aria-label={Locale.Settings.Goldfish.RandomModel.Enabled.Title}
+              type="checkbox"
+              checked={!!modelConfig.goldfish.randomModelEnabled}
+              onChange={(e) =>
+                props.updateConfig(
+                  (config) =>
+                    (config.goldfish.randomModelEnabled =
+                      e.currentTarget.checked),
+                )
+              }
+            ></input>
+          </ListItem>
+
+          {modelConfig.goldfish.randomModelEnabled && (
+            <ListItem
+              title={Locale.Settings.Goldfish.RandomModel.Selected.Title}
+              subTitle={Locale.Settings.Goldfish.RandomModel.Selected.SubTitle}
+              vertical
+            >
+              <input
+                aria-label={Locale.Settings.Goldfish.RandomModel.Search}
+                className={styles["random-prompt-search"]}
+                type="text"
+                value={modelSearch}
+                placeholder={Locale.Settings.Goldfish.RandomModel.Search}
+                onChange={(e) => setModelSearch(e.currentTarget.value)}
+              />
+              <div className={styles["random-prompt-pool-list"]}>
+                {filteredModels.length > 0 ? (
+                  filteredModels.map((model) => {
+                    const modelValue = model.name;
+                    const selected =
+                      modelConfig.goldfish.randomModelSelected.includes(
+                        modelValue,
+                      );
+
+                    return (
+                      <button
+                        key={`${model.provider.id}-${model.name}`}
+                        type="button"
+                        className={styles["random-prompt-chip"]}
+                        data-selected={selected}
+                        title={model.name}
+                        onClick={() => {
+                          props.updateConfig((config) => {
+                            const selectedSet = new Set(
+                              config.goldfish.randomModelSelected,
+                            );
+
+                            if (selectedSet.has(modelValue)) {
+                              selectedSet.delete(modelValue);
+                            } else {
+                              selectedSet.add(modelValue);
+                            }
+
+                            config.goldfish.randomModelSelected =
+                              Array.from(selectedSet);
+                          });
+                        }}
+                      >
+                        <span className={styles["random-prompt-chip-title"]}>
+                          {model.displayName ?? model.name}
+                        </span>
+                        <span className={styles["random-prompt-chip-content"]}>
+                          {model.name}
+                        </span>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className={styles["random-prompt-empty"]}>
+                    {Locale.Settings.Goldfish.RandomModel.Selected.Empty}
+                  </div>
+                )}
+              </div>
+            </ListItem>
+          )}
 
           <ListItem
             title={Locale.Settings.Goldfish.RandomPrompt.Enabled.Title}
