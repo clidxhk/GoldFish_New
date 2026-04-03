@@ -278,6 +278,9 @@ function CustomModelModal(props: {
         ]}
       >
         <div className={styles["custom-model-modal"]}>
+          <div className={styles["custom-model-intro"]}>
+            {Locale.Settings.Access.CustomModel.SubTitle}
+          </div>
           <div className={styles["custom-model-list"]}>
             {props.models.length > 0 ? (
               props.models.map((model) => {
@@ -293,43 +296,64 @@ function CustomModelModal(props: {
                 return (
                   <div className={styles["custom-model-item"]} key={modelKey}>
                     <div className={styles["custom-model-info"]}>
-                      <input
-                        className={styles["custom-model-list-input"]}
-                        value={draft.name}
-                        placeholder={Locale.Settings.Access.CustomModel.ApiName}
-                        onChange={(e) => {
-                          const value = e.currentTarget.value;
-                          setDrafts((drafts) => ({
-                            ...drafts,
-                            [modelKey]: {
-                              ...draft,
-                              name: value,
-                            },
-                          }));
-                        }}
-                      />
-                      <input
-                        className={styles["custom-model-list-input"]}
-                        value={draft.displayName}
-                        placeholder={
-                          Locale.Settings.Access.CustomModel.DisplayName
-                        }
-                        onChange={(e) => {
-                          const value = e.currentTarget.value;
-                          setDrafts((drafts) => ({
-                            ...drafts,
-                            [modelKey]: {
-                              ...draft,
-                              displayName: value,
-                            },
-                          }));
-                        }}
-                      />
+                      <div className={styles["custom-model-item-header"]}>
+                        <div className={styles["custom-model-item-title"]}>
+                          {draft.displayName || draft.name}
+                        </div>
+                        <div className={styles["custom-model-item-subtitle"]}>
+                          {model.provider?.providerName ??
+                            ServiceProvider.OpenAI}
+                        </div>
+                      </div>
+                      <label className={styles["custom-model-field"]}>
+                        <span className={styles["custom-model-field-label"]}>
+                          {Locale.Settings.Access.CustomModel.ApiNameLabel}
+                        </span>
+                        <input
+                          className={styles["custom-model-list-input"]}
+                          value={draft.name}
+                          placeholder={
+                            Locale.Settings.Access.CustomModel.ApiName
+                          }
+                          onChange={(e) => {
+                            const value = e.currentTarget.value;
+                            setDrafts((drafts) => ({
+                              ...drafts,
+                              [modelKey]: {
+                                ...draft,
+                                name: value,
+                              },
+                            }));
+                          }}
+                        />
+                      </label>
+                      <label className={styles["custom-model-field"]}>
+                        <span className={styles["custom-model-field-label"]}>
+                          {Locale.Settings.Access.CustomModel.DisplayNameLabel}
+                        </span>
+                        <input
+                          className={styles["custom-model-list-input"]}
+                          value={draft.displayName}
+                          placeholder={
+                            Locale.Settings.Access.CustomModel.DisplayName
+                          }
+                          onChange={(e) => {
+                            const value = e.currentTarget.value;
+                            setDrafts((drafts) => ({
+                              ...drafts,
+                              [modelKey]: {
+                                ...draft,
+                                displayName: value,
+                              },
+                            }));
+                          }}
+                        />
+                      </label>
                     </div>
                     <div className={styles["custom-model-actions"]}>
                       <IconButton
                         icon={<ConfirmIcon />}
-                        bordered
+                        text={Locale.Settings.Access.CustomModel.Save}
                         title={Locale.Settings.Access.CustomModel.Save}
                         onClick={() =>
                           props.onSave(model, {
@@ -341,6 +365,8 @@ function CustomModelModal(props: {
                       <IconButton
                         icon={<DeleteIcon />}
                         bordered
+                        type="danger"
+                        text={Locale.Settings.Access.CustomModel.Delete}
                         title={Locale.Settings.Access.CustomModel.Delete}
                         onClick={() => props.onDelete(model)}
                       />
