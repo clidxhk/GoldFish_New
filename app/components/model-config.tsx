@@ -221,7 +221,9 @@ export function ModelConfigList(props: {
 
                     return (
                       <button
-                        key={`${model.provider.id}-${model.name}`}
+                        key={`${model.provider?.id ?? "unknown-provider"}-${
+                          model.name
+                        }`}
                         type="button"
                         className={styles["random-prompt-chip"]}
                         data-selected={selected}

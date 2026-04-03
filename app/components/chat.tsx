@@ -125,7 +125,7 @@ import { isEmpty } from "lodash-es";
 import { getModelProvider } from "../utils/model";
 import clsx from "clsx";
 import { RealtimeChat } from "@/app/components/realtime-chat";
-import { getAvailableClientsCount, isMcpEnabled } from "../mcp/actions";
+import { getAvailableClientsCount, isMcpEnabled } from "../mcp/browser-actions";
 
 function formatSamplingValue(value?: number) {
   if (value === undefined || Number.isNaN(value)) return undefined;

@@ -40,7 +40,11 @@ import {
 import { useAccessStore } from "./access";
 import { collectModelsWithDefaultModel } from "../utils/model";
 import { createEmptyMask, Mask } from "./mask";
-import { executeMcpAction, getAllTools, isMcpEnabled } from "../mcp/actions";
+import {
+  executeMcpAction,
+  getAllTools,
+  isMcpEnabled,
+} from "../mcp/browser-actions";
 import { extractMcpJson, isMcpJson } from "../mcp/utils";
 
 const localStorage = safeLocalStorage();
