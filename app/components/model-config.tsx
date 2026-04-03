@@ -145,6 +145,118 @@ export function ModelConfigList(props: {
         </ListItem>
 
         <ListItem
+          title={Locale.Settings.Goldfish.Enabled.Title}
+          subTitle={Locale.Settings.Goldfish.Enabled.SubTitle}
+        >
+          <input
+            aria-label={Locale.Settings.Goldfish.Enabled.Title}
+            type="checkbox"
+            checked={!!props.modelConfig.goldfish?.enabled}
+            onChange={(e) =>
+              props.updateConfig(
+                (config) => (config.goldfish.enabled = e.currentTarget.checked),
+              )
+            }
+          ></input>
+        </ListItem>
+
+        {props.modelConfig.goldfish?.enabled && (
+          <>
+            <ListItem
+              title={Locale.Settings.Goldfish.Range.Title}
+              subTitle={Locale.Settings.Goldfish.Range.SubTitle}
+            >
+              <InputRange
+                aria={Locale.Settings.Goldfish.Range.Title}
+                value={props.modelConfig.goldfish.range.toFixed(1)}
+                min="0"
+                max="1"
+                step="0.1"
+                onChange={(e) => {
+                  props.updateConfig(
+                    (config) =>
+                      (config.goldfish.range =
+                        ModalConfigValidator.goldfishRange(
+                          e.currentTarget.valueAsNumber,
+                        )),
+                  );
+                }}
+              ></InputRange>
+            </ListItem>
+
+            <ListItem
+              title={Locale.Settings.Goldfish.Temperature.Title}
+              subTitle={Locale.Settings.Goldfish.Temperature.SubTitle}
+            >
+              <input
+                aria-label={Locale.Settings.Goldfish.Temperature.Title}
+                type="checkbox"
+                checked={!!props.modelConfig.goldfish.temperature}
+                onChange={(e) =>
+                  props.updateConfig(
+                    (config) =>
+                      (config.goldfish.temperature = e.currentTarget.checked),
+                  )
+                }
+              ></input>
+            </ListItem>
+
+            <ListItem
+              title={Locale.Settings.Goldfish.TopP.Title}
+              subTitle={Locale.Settings.Goldfish.TopP.SubTitle}
+            >
+              <input
+                aria-label={Locale.Settings.Goldfish.TopP.Title}
+                type="checkbox"
+                checked={!!props.modelConfig.goldfish.top_p}
+                onChange={(e) =>
+                  props.updateConfig(
+                    (config) =>
+                      (config.goldfish.top_p = e.currentTarget.checked),
+                  )
+                }
+              ></input>
+            </ListItem>
+
+            <ListItem
+              title={Locale.Settings.Goldfish.PresencePenalty.Title}
+              subTitle={Locale.Settings.Goldfish.PresencePenalty.SubTitle}
+            >
+              <input
+                aria-label={Locale.Settings.Goldfish.PresencePenalty.Title}
+                type="checkbox"
+                checked={!!props.modelConfig.goldfish.presence_penalty}
+                onChange={(e) =>
+                  props.updateConfig(
+                    (config) =>
+                      (config.goldfish.presence_penalty =
+                        e.currentTarget.checked),
+                  )
+                }
+              ></input>
+            </ListItem>
+
+            <ListItem
+              title={Locale.Settings.Goldfish.FrequencyPenalty.Title}
+              subTitle={Locale.Settings.Goldfish.FrequencyPenalty.SubTitle}
+            >
+              <input
+                aria-label={Locale.Settings.Goldfish.FrequencyPenalty.Title}
+                type="checkbox"
+                checked={!!props.modelConfig.goldfish.frequency_penalty}
+                onChange={(e) =>
+                  props.updateConfig(
+                    (config) =>
+                      (config.goldfish.frequency_penalty =
+                        e.currentTarget.checked),
+                  )
+                }
+              ></input>
+            </ListItem>
+          </>
+        )}
+
+        <ListItem
           title={Locale.Settings.InjectSystemPrompts.Title}
           subTitle={Locale.Settings.InjectSystemPrompts.SubTitle}
         >

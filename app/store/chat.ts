@@ -30,7 +30,12 @@ import Locale, { getLang } from "../locales";
 import { prettyObject } from "../utils/format";
 import { createPersistStore } from "../utils/store";
 import { estimateTokenLength } from "../utils/token";
-import { ModelConfig, ModelType, useAppConfig } from "./config";
+import {
+  ModelConfig,
+  ModelType,
+  normalizeModelConfig,
+  useAppConfig,
+} from "./config";
 import { useAccessStore } from "./access";
 import { collectModelsWithDefaultModel } from "../utils/model";
 import { createEmptyMask, Mask } from "./mask";
@@ -305,8 +310,12 @@ export const useChatStore = createPersistStore(
           session.mask = {
             ...mask,
             modelConfig: {
-              ...globalModelConfig,
+              ...normalizeModelConfig(globalModelConfig),
               ...mask.modelConfig,
+              goldfish: normalizeModelConfig({
+                ...globalModelConfig,
+                ...mask.modelConfig,
+              }).goldfish,
             },
           };
           session.topic = mask.name;
@@ -915,6 +924,10 @@ export const useChatStore = createPersistStore(
           s.mask.modelConfig.compressProviderName = "";
         });
       }
+
+      newState.sessions.forEach((s) => {
+        s.mask.modelConfig = normalizeModelConfig(s.mask.modelConfig);
+      });
 
       return newState as any;
     },

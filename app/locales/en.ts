@@ -596,6 +596,34 @@ const en: LocaleType = {
       SubTitle:
         "A larger value decreasing the likelihood to repeat the same line",
     },
+    Goldfish: {
+      Enabled: {
+        Title: "Goldfish Mode",
+        SubTitle:
+          "Randomly perturb selected sampling parameters around their configured values",
+      },
+      Range: {
+        Title: "Random Offset Range",
+        SubTitle:
+          "Each selected parameter will randomly float up or down within this range on every request",
+      },
+      Temperature: {
+        Title: "Randomize Temperature",
+        SubTitle: "Apply random offset to temperature",
+      },
+      TopP: {
+        Title: "Randomize Top P",
+        SubTitle: "Apply random offset to top_p",
+      },
+      PresencePenalty: {
+        Title: "Randomize Presence Penalty",
+        SubTitle: "Apply random offset to presence_penalty",
+      },
+      FrequencyPenalty: {
+        Title: "Randomize Frequency Penalty",
+        SubTitle: "Apply random offset to frequency_penalty",
+      },
+    },
     TTS: {
       Enable: {
         Title: "Enable TTS",

@@ -1,14 +1,16 @@
 "use client";
 // azure and openai, using same models. so using same LLMApi.
 import {
-  ApiPath,
-  OPENAI_BASE_URL,
   DEFAULT_MODELS,
   OpenaiPath,
   REQUEST_TIMEOUT_MS,
+  ServiceProvider,
 } from "@/app/constant";
 import {
   ChatMessageTool,
+  ModelConfig,
+  normalizeModelConfig,
+  normalizeGoldfishConfig,
   useAccessStore,
   useAppConfig,
   useChatStore,
@@ -33,7 +35,6 @@ import {
   SpeechOptions,
 } from "../api";
 import Locale from "../../locales";
-import { getClientConfig } from "@/app/config/client";
 import {
   getMessageTextContent,
   isVisionModel,
@@ -76,26 +77,62 @@ export interface DalleRequestPayload {
   style: DalleStyle;
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function withGoldfishSampling(modelConfig: ModelConfig): ModelConfig {
+  const goldfish = normalizeGoldfishConfig(modelConfig.goldfish);
+  if (!goldfish.enabled) return modelConfig;
+
+  const nextConfig = {
+    ...modelConfig,
+    goldfish,
+  };
+  const randomize = (value: number, min: number, max: number) =>
+    clamp(value + (Math.random() * 2 - 1) * goldfish.range, min, max);
+
+  if (goldfish.temperature) {
+    nextConfig.temperature = randomize(modelConfig.temperature, 0, 2);
+  }
+  if (goldfish.top_p) {
+    nextConfig.top_p = randomize(modelConfig.top_p, 0, 1);
+  }
+  if (goldfish.presence_penalty) {
+    nextConfig.presence_penalty = randomize(
+      modelConfig.presence_penalty,
+      -2,
+      2,
+    );
+  }
+  if (goldfish.frequency_penalty) {
+    nextConfig.frequency_penalty = randomize(
+      modelConfig.frequency_penalty,
+      -2,
+      2,
+    );
+  }
+
+  return nextConfig;
+}
+
 export class ChatGPTApi implements LLMApi {
   private disableListModels = true;
 
   path(path: string): string {
     const accessStore = useAccessStore.getState();
-
-    let baseUrl = "";
-    if (accessStore.useCustomConfig) {
-      baseUrl = accessStore.openaiUrl;
-    }
+    let baseUrl = accessStore.openaiUrl.trim();
 
     if (baseUrl.length === 0) {
-      const isApp = !!getClientConfig()?.isApp;
-      baseUrl = isApp ? OPENAI_BASE_URL : ApiPath.OpenAI;
+      throw new Error(
+        "OpenAI endpoint is required. Please configure it in Settings.",
+      );
     }
 
     if (baseUrl.endsWith("/")) {
       baseUrl = baseUrl.slice(0, baseUrl.length - 1);
     }
-    if (!baseUrl.startsWith("http") && !baseUrl.startsWith(ApiPath.OpenAI)) {
+    if (!baseUrl.startsWith("http")) {
       baseUrl = "https://" + baseUrl;
     }
 
@@ -168,14 +205,17 @@ export class ChatGPTApi implements LLMApi {
   }
 
   async chat(options: ChatOptions) {
-    const modelConfig = {
+    const mergedModelConfig = {
       ...useAppConfig.getState().modelConfig,
       ...useChatStore.getState().currentSession().mask.modelConfig,
       ...{
         model: options.config.model,
-        providerName: options.config.providerName,
+        providerName: ServiceProvider.OpenAI,
       },
     };
+    const modelConfig = withGoldfishSampling(
+      normalizeModelConfig(mergedModelConfig),
+    );
 
     let requestPayload: RequestPayload | DalleRequestPayload;
 

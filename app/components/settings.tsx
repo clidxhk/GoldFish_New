@@ -10,7 +10,6 @@ import ClearIcon from "../icons/clear.svg";
 import LoadingIcon from "../icons/three-dots.svg";
 import EditIcon from "../icons/edit.svg";
 import DeleteIcon from "../icons/delete.svg";
-import FireIcon from "../icons/fire.svg";
 import EyeIcon from "../icons/eye.svg";
 import DownloadIcon from "../icons/download.svg";
 import UploadIcon from "../icons/upload.svg";
@@ -20,7 +19,6 @@ import ConfirmIcon from "../icons/confirm.svg";
 import ConnectionIcon from "../icons/connection.svg";
 import CloudSuccessIcon from "../icons/cloud-success.svg";
 import CloudFailIcon from "../icons/cloud-fail.svg";
-import { trackSettingsPageGuideToCPaymentClick } from "../utils/auth-settings-events";
 import {
   Input,
   List,
@@ -62,7 +60,6 @@ import {
   ServiceProvider,
   SlotID,
   UPDATE_URL,
-  SAAS_CHAT_URL,
 } from "../constant";
 import { Prompt, SearchService, usePromptStore } from "../store/prompt";
 import { ErrorBoundary } from "./error";
@@ -935,12 +932,6 @@ export function Settings() {
         navigate(Path.Home);
       }
     };
-    if (clientConfig?.isApp) {
-      // Force to set custom endpoint to true if it's app
-      accessStore.update((state) => {
-        state.useCustomConfig = true;
-      });
-    }
     document.addEventListener("keydown", keydownEvent);
     return () => {
       document.removeEventListener("keydown", keydownEvent);
@@ -968,50 +959,6 @@ export function Settings() {
       />
     </ListItem>
   );
-
-  const saasStartComponent = (
-    <ListItem
-      className={styles["subtitle-button"]}
-      title={
-        Locale.Settings.Access.SaasStart.Title +
-        `${Locale.Settings.Access.SaasStart.Label}`
-      }
-      subTitle={Locale.Settings.Access.SaasStart.SubTitle}
-    >
-      <IconButton
-        aria={
-          Locale.Settings.Access.SaasStart.Title +
-          Locale.Settings.Access.SaasStart.ChatNow
-        }
-        icon={<FireIcon />}
-        type={"primary"}
-        text={Locale.Settings.Access.SaasStart.ChatNow}
-        onClick={() => {
-          trackSettingsPageGuideToCPaymentClick();
-          window.location.href = SAAS_CHAT_URL;
-        }}
-      />
-    </ListItem>
-  );
-
-  const useCustomConfigComponent = // Conditionally render the following ListItem based on clientConfig.isApp
-    !clientConfig?.isApp && ( // only show if isApp is false
-      <ListItem
-        title={Locale.Settings.Access.CustomEndpoint.Title}
-        subTitle={Locale.Settings.Access.CustomEndpoint.SubTitle}
-      >
-        <input
-          aria-label={Locale.Settings.Access.CustomEndpoint.Title}
-          type="checkbox"
-          checked={accessStore.useCustomConfig}
-          onChange={(e) =>
-            accessStore.update(
-              (access) => (access.useCustomConfig = e.currentTarget.checked),
-            )
-          }
-        ></input>
-      </ListItem>
-    );
 
   const openAIConfigComponent = accessStore.provider ===
     ServiceProvider.OpenAI && (
@@ -1369,16 +1316,9 @@ export function Settings() {
         </List>
 
         <List id={SlotID.CustomModel}>
-          {saasStartComponent}
           {accessCodeComponent}
 
-          {!accessStore.hideUserApiKey && (
-            <>
-              {useCustomConfigComponent}
-
-              {accessStore.useCustomConfig && <>{openAIConfigComponent}</>}
-            </>
-          )}
+          {!accessStore.hideUserApiKey && <>{openAIConfigComponent}</>}
 
           {!shouldHideBalanceQuery && !clientConfig?.isApp ? (
             <ListItem

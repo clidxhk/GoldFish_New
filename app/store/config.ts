@@ -22,6 +22,12 @@ export type TTSModelType = (typeof DEFAULT_TTS_MODELS)[number];
 export type TTSVoiceType = (typeof DEFAULT_TTS_VOICES)[number];
 export type TTSEngineType = (typeof DEFAULT_TTS_ENGINES)[number];
 
+export type GoldfishSamplingField =
+  | "temperature"
+  | "top_p"
+  | "presence_penalty"
+  | "frequency_penalty";
+
 export enum SubmitKey {
   Enter = "Enter",
   CtrlEnter = "Ctrl + Enter",
@@ -158,6 +164,14 @@ export const DEFAULT_CONFIG = {
     compressModel: "",
     compressProviderName: "",
     enableInjectSystemPrompts: true,
+    goldfish: {
+      enabled: false,
+      range: 0.2,
+      temperature: true,
+      top_p: true,
+      presence_penalty: true,
+      frequency_penalty: true,
+    },
     template: config?.template ?? DEFAULT_INPUT_TEMPLATE,
     size: "1024x1024" as ModelSize,
     quality: "standard" as DalleQuality,
@@ -192,6 +206,31 @@ export type ChatConfig = typeof DEFAULT_CONFIG;
 export type ModelConfig = ChatConfig["modelConfig"];
 export type TTSConfig = ChatConfig["ttsConfig"];
 export type RealtimeConfig = ChatConfig["realtimeConfig"];
+
+export function normalizeGoldfishConfig(
+  goldfish?: Partial<ModelConfig["goldfish"]>,
+): ModelConfig["goldfish"] {
+  return {
+    ...DEFAULT_CONFIG.modelConfig.goldfish,
+    ...goldfish,
+    range: limitNumber(
+      goldfish?.range ?? DEFAULT_CONFIG.modelConfig.goldfish.range,
+      0,
+      1,
+      DEFAULT_CONFIG.modelConfig.goldfish.range,
+    ),
+  };
+}
+
+export function normalizeModelConfig(
+  modelConfig?: Partial<ModelConfig>,
+): ModelConfig {
+  return {
+    ...DEFAULT_CONFIG.modelConfig,
+    ...modelConfig,
+    goldfish: normalizeGoldfishConfig(modelConfig?.goldfish),
+  };
+}
 
 export function limitNumber(
   x: number,
@@ -239,6 +278,9 @@ export const ModalConfigValidator = {
   },
   top_p(x: number) {
     return limitNumber(x, 0, 1, 1);
+  },
+  goldfishRange(x: number) {
+    return limitNumber(x, 0, 1, DEFAULT_CONFIG.modelConfig.goldfish.range);
   },
 };
 
@@ -295,6 +337,7 @@ export const useAppConfig = createPersistStore(
       return withSyncedCustomModels({
         ...currentState,
         ...state,
+        modelConfig: normalizeModelConfig(state.modelConfig),
         models: models,
       });
     },
@@ -348,6 +391,8 @@ export const useAppConfig = createPersistStore(
           state.customModels ?? "",
         );
       }
+
+      state.modelConfig = normalizeModelConfig(state.modelConfig);
 
       state.models = (state.models ?? []).filter(isOpenAIModel);
       state.modelConfig.providerName = ServiceProvider.OpenAI;

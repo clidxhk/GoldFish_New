@@ -608,6 +608,32 @@ const cn = {
         SubTitle: "生成语音的速度",
       },
     },
+    Goldfish: {
+      Enabled: {
+        Title: "金鱼模式",
+        SubTitle: "让已勾选的采样参数在每次请求时围绕当前设定值随机上下浮动",
+      },
+      Range: {
+        Title: "随机浮动范围",
+        SubTitle: "每次请求都会在该范围内对勾选参数做随机增减",
+      },
+      Temperature: {
+        Title: "随机采样 temperature",
+        SubTitle: "对 temperature 应用随机浮动",
+      },
+      TopP: {
+        Title: "随机采样 top_p",
+        SubTitle: "对 top_p 应用随机浮动",
+      },
+      PresencePenalty: {
+        Title: "随机采样 presence_penalty",
+        SubTitle: "对 presence_penalty 应用随机浮动",
+      },
+      FrequencyPenalty: {
+        Title: "随机采样 frequency_penalty",
+        SubTitle: "对 frequency_penalty 应用随机浮动",
+      },
+    },
     Realtime: {
       Enable: {
         Title: "实时聊天",

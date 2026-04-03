@@ -18,9 +18,9 @@ const DEFAULT_OPENAI_URL = isApp ? OPENAI_BASE_URL : ApiPath.OpenAI;
 
 const DEFAULT_ACCESS_STATE = {
   accessCode: "",
-  useCustomConfig: false,
+  useCustomConfig: true,
   provider: ServiceProvider.OpenAI,
-  openaiUrl: DEFAULT_OPENAI_URL,
+  openaiUrl: "",
   openaiApiKey: "",
   stabilityUrl: "",
   stabilityApiKey: "",
@@ -51,7 +51,7 @@ export const useAccessStore = createPersistStore(
       return get().edgeTTSVoiceName;
     },
     isValidOpenAI() {
-      return ensure(get(), ["openaiApiKey"]);
+      return ensure(get(), ["openaiApiKey", "openaiUrl"]);
     },
     isAuthorized() {
       this.fetch();
@@ -96,17 +96,26 @@ export const useAccessStore = createPersistStore(
   }),
   {
     name: StoreKey.Access,
-    version: 4,
+    version: 5,
     migrate(persistedState, version) {
       const state = persistedState as any;
       if (version < 2) {
         state.openaiApiKey = state.token;
       }
 
+      const normalizedOpenaiUrl =
+        typeof state.openaiUrl === "string" &&
+        state.openaiUrl.length > 0 &&
+        state.openaiUrl !== DEFAULT_OPENAI_URL
+          ? state.openaiUrl
+          : "";
+
       return {
         ...DEFAULT_ACCESS_STATE,
         ...state,
         provider: ServiceProvider.OpenAI,
+        useCustomConfig: true,
+        openaiUrl: normalizedOpenaiUrl,
       } as any;
     },
   },
