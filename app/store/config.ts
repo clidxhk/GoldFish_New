@@ -39,6 +39,8 @@ export enum Theme {
 const config = getClientConfig();
 const isOpenAIModel = (model?: LLMModel) =>
   model?.provider?.providerName === ServiceProvider.OpenAI;
+const getProviderKey = (provider?: LLMModel["provider"]) =>
+  (provider?.id || provider?.providerName || "").toLowerCase();
 
 export interface CustomModelEntry {
   name: string;
@@ -282,10 +284,13 @@ export const useAppConfig = createPersistStore(
       const models = currentState.models.slice();
       (state.models ?? []).filter(isOpenAIModel).forEach((pModel) => {
         const idx = models.findIndex(
-          (v) => v.name === pModel.name && v.provider === pModel.provider,
+          (v) =>
+            v.name === pModel.name &&
+            getProviderKey(v.provider) === getProviderKey(pModel.provider),
         );
+        // Only hydrate models we still know about in the current build to avoid
+        // reviving stale cached entries from older browser state.
         if (idx !== -1) models[idx] = pModel;
-        else models.push(pModel);
       });
       return withSyncedCustomModels({
         ...currentState,

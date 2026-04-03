@@ -83,6 +83,13 @@ type OpenAICollectedModel = CollectedModel & {
   provider: NonNullable<CollectedModel["provider"]>;
 };
 
+const FALLBACK_OPENAI_PROVIDER: OpenAICollectedModel["provider"] = {
+  id: ServiceProvider.OpenAI.toLowerCase(),
+  providerName: ServiceProvider.OpenAI,
+  providerType: "custom",
+  sorted: -1,
+};
+
 function EditPromptModal(props: { id: string; onClose: () => void }) {
   const promptStore = usePromptStore();
   const prompt = promptStore.get(props.id);
@@ -772,19 +779,48 @@ export function Settings() {
     });
   };
 
-  const customModels = useMemo(
-    () =>
+  const updatePersistedModels = (
+    updater: (models: typeof config.models) => typeof config.models,
+  ) => {
+    config.update((config) => {
+      config.models = updater(config.models);
+    });
+  };
+
+  const customModels = useMemo(() => {
+    const collectedModelMap = new Map(
       collectModels(
         config.models,
-        [config.customModels, accessStore.customModels].join(","),
-      ).filter(
-        (model): model is OpenAICollectedModel =>
-          model.available &&
-          !!model.provider &&
-          model.provider.providerName === ServiceProvider.OpenAI,
-      ),
-    [accessStore.customModels, config.customModels, config.models],
-  );
+        [accessStore.customModels, config.customModels].join(","),
+      )
+        .filter(
+          (model): model is OpenAICollectedModel =>
+            model.available &&
+            !!model.provider &&
+            model.provider.providerName === ServiceProvider.OpenAI,
+        )
+        .map((model) => [model.name, model]),
+    );
+
+    return config.customModelEntries
+      .filter((entry) => entry.enabled)
+      .map((entry) => {
+        const model = collectedModelMap.get(entry.name);
+        return {
+          name: entry.name,
+          displayName: entry.displayName || model?.displayName || entry.name,
+          available: model?.available ?? true,
+          sorted: model?.sorted ?? -1,
+          provider: model?.provider ?? FALLBACK_OPENAI_PROVIDER,
+          isDefault: model?.isDefault,
+        } as OpenAICollectedModel;
+      });
+  }, [
+    accessStore.customModels,
+    config.customModelEntries,
+    config.customModels,
+    config.models,
+  ]);
 
   const saveCustomModel = () => {
     const name = customModelNameInput.trim();
@@ -823,6 +859,15 @@ export function Settings() {
     });
 
     updateCustomModelEntries(nextEntries);
+    updatePersistedModels((models) =>
+      models.filter(
+        (item) =>
+          !(
+            item.name === model.name &&
+            item.provider?.providerName === ServiceProvider.OpenAI
+          ),
+      ),
+    );
     showToast(Locale.Settings.Access.CustomModel.Deleted);
   };
 
@@ -862,6 +907,17 @@ export function Settings() {
     });
 
     updateCustomModelEntries(nextEntries);
+    if (originalModel.name !== nextName) {
+      updatePersistedModels((models) =>
+        models.filter(
+          (item) =>
+            !(
+              item.name === originalModel.name &&
+              item.provider?.providerName === ServiceProvider.OpenAI
+            ),
+        ),
+      );
+    }
     showToast(Locale.Settings.Access.CustomModel.Saved);
   };
 
