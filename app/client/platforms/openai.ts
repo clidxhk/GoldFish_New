@@ -81,7 +81,27 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function withGoldfishSampling(modelConfig: ModelConfig): ModelConfig {
+function getGoldfishVariantRatio(
+  responseIndex?: number,
+  responseCount?: number,
+) {
+  if (
+    responseCount &&
+    responseCount > 1 &&
+    responseIndex !== undefined &&
+    responseIndex >= 0
+  ) {
+    return (responseIndex + 1) / (responseCount + 1);
+  }
+
+  return Math.random();
+}
+
+function withGoldfishSampling(
+  modelConfig: ModelConfig,
+  responseIndex?: number,
+  responseCount?: number,
+): ModelConfig {
   const goldfish = normalizeGoldfishConfig(modelConfig.goldfish);
   if (!goldfish.enabled) return modelConfig;
 
@@ -89,8 +109,12 @@ function withGoldfishSampling(modelConfig: ModelConfig): ModelConfig {
     ...modelConfig,
     goldfish,
   };
-  const randomize = (value: number, min: number, max: number) =>
-    clamp(value + (Math.random() * 2 - 1) * goldfish.range, min, max);
+  const randomize = (value: number, min: number, max: number) => {
+    const lower = clamp(value - goldfish.range, min, max);
+    const upper = clamp(value + goldfish.range, min, max);
+    const ratio = getGoldfishVariantRatio(responseIndex, responseCount);
+    return lower + (upper - lower) * ratio;
+  };
 
   if (goldfish.temperature) {
     nextConfig.temperature = randomize(modelConfig.temperature, 0, 2);
@@ -116,7 +140,10 @@ function withGoldfishSampling(modelConfig: ModelConfig): ModelConfig {
   return nextConfig;
 }
 
-function getRandomGoldfishPrompt(modelConfig: ModelConfig) {
+function getRandomGoldfishPrompt(
+  modelConfig: ModelConfig,
+  responseIndex?: number,
+) {
   const goldfish = normalizeGoldfishConfig(modelConfig.goldfish);
   const prompts =
     goldfish.enabled && goldfish.randomPromptEnabled
@@ -124,6 +151,10 @@ function getRandomGoldfishPrompt(modelConfig: ModelConfig) {
       : [];
 
   if (prompts.length === 0) return "";
+
+  if (responseIndex !== undefined && responseIndex >= 0) {
+    return prompts[responseIndex % prompts.length] ?? "";
+  }
 
   return prompts[Math.floor(Math.random() * prompts.length)] ?? "";
 }
@@ -227,6 +258,8 @@ export class ChatGPTApi implements LLMApi {
     };
     const modelConfig = withGoldfishSampling(
       normalizeModelConfig(mergedModelConfig),
+      options.config.responseIndex,
+      options.config.responseCount,
     );
 
     let requestPayload: RequestPayload | DalleRequestPayload;
@@ -275,7 +308,10 @@ export class ChatGPTApi implements LLMApi {
         // Please do not ask me why not send max_tokens, no reason, this param is just shit, I dont want to explain anymore.
       };
 
-      const randomGoldfishPrompt = getRandomGoldfishPrompt(modelConfig);
+      const randomGoldfishPrompt = getRandomGoldfishPrompt(
+        modelConfig,
+        options.config.responseIndex,
+      );
       if (randomGoldfishPrompt) {
         requestPayload.messages.unshift({
           role: isO1OrO3 || isGpt5 ? "developer" : "system",

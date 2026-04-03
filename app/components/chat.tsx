@@ -1231,11 +1231,10 @@ function _Chat() {
     }
 
     let userMessage: ChatMessage | undefined;
-    let botMessage: ChatMessage | undefined;
+    const botMessages: ChatMessage[] = [];
 
     if (message.role === "assistant") {
       // if it is resending a bot's message, find the user input for it
-      botMessage = message;
       for (let i = resendingIndex; i >= 0; i -= 1) {
         if (session.messages[i].role === "user") {
           userMessage = session.messages[i];
@@ -1245,12 +1244,6 @@ function _Chat() {
     } else if (message.role === "user") {
       // if it is resending a user's input, find the bot's response
       userMessage = message;
-      for (let i = resendingIndex; i < session.messages.length; i += 1) {
-        if (session.messages[i].role === "assistant") {
-          botMessage = session.messages[i];
-          break;
-        }
-      }
     }
 
     if (userMessage === undefined) {
@@ -1258,9 +1251,20 @@ function _Chat() {
       return;
     }
 
+    const userMessageIndex = session.messages.findIndex(
+      (m) => m.id === userMessage?.id,
+    );
+    for (let i = userMessageIndex + 1; i < session.messages.length; i += 1) {
+      const currentMessage = session.messages[i];
+      if (currentMessage.role === "user") break;
+      if (currentMessage.role === "assistant") {
+        botMessages.push(currentMessage);
+      }
+    }
+
     // delete the original messages
     deleteMessage(userMessage.id);
-    deleteMessage(botMessage?.id);
+    botMessages.forEach((botMessage) => deleteMessage(botMessage.id));
 
     // resend the message
     setIsLoading(true);

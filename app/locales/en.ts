@@ -574,6 +574,11 @@ const en: LocaleType = {
       Title: "Summary Model",
       SubTitle: "Model used to compress history and generate title",
     },
+    ResponseCount: {
+      Title: "Responses Per Input",
+      SubTitle:
+        "Send the same user input to the API 1-5 times and show each output separately",
+    },
     Temperature: {
       Title: "Temperature",
       SubTitle: "A larger value makes the more random output",

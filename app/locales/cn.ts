@@ -568,6 +568,11 @@ const cn = {
       Title: "对话摘要模型",
       SubTitle: "用于压缩历史记录、生成对话标题的模型",
     },
+    ResponseCount: {
+      Title: "单次输入输出次数",
+      SubTitle:
+        "同一条用户输入可同时发起 1-5 次 API 请求，并分别显示每次的回复",
+    },
     Temperature: {
       Title: "随机性 (temperature)",
       SubTitle: "值越大，回复越随机",

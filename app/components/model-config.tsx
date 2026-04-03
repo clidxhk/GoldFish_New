@@ -1,5 +1,9 @@
 import { ServiceProvider } from "@/app/constant";
-import { ModalConfigValidator, ModelConfig } from "../store";
+import {
+  ModalConfigValidator,
+  ModelConfig,
+  normalizeModelConfig,
+} from "../store";
 
 import Locale from "../locales";
 import { InputRange } from "./input-range";
@@ -13,12 +17,13 @@ export function ModelConfigList(props: {
   modelConfig: ModelConfig;
   updateConfig: (updater: (config: ModelConfig) => void) => void;
 }) {
+  const modelConfig = normalizeModelConfig(props.modelConfig);
   const promptStore = usePromptStore();
   const allModels = useAllModels().filter(
     (v) => v.available && v.provider?.providerName === ServiceProvider.OpenAI,
   );
-  const value = props.modelConfig.model;
-  const compressModelValue = props.modelConfig.compressModel;
+  const value = modelConfig.model;
+  const compressModelValue = modelConfig.compressModel;
   const [promptSearch, setPromptSearch] = useState("");
   const allPrompts = useMemo(() => {
     const userPrompts = promptStore.getUserPrompts();
@@ -66,12 +71,33 @@ export function ModelConfigList(props: {
         </Select>
       </ListItem>
       <ListItem
+        title={Locale.Settings.ResponseCount.Title}
+        subTitle={Locale.Settings.ResponseCount.SubTitle}
+      >
+        <InputRange
+          aria={Locale.Settings.ResponseCount.Title}
+          title={modelConfig.responseCount.toString()}
+          value={modelConfig.responseCount}
+          min="1"
+          max="5"
+          step="1"
+          onChange={(e) => {
+            props.updateConfig(
+              (config) =>
+                (config.responseCount = ModalConfigValidator.responseCount(
+                  e.currentTarget.valueAsNumber,
+                )),
+            );
+          }}
+        ></InputRange>
+      </ListItem>
+      <ListItem
         title={Locale.Settings.Temperature.Title}
         subTitle={Locale.Settings.Temperature.SubTitle}
       >
         <InputRange
           aria={Locale.Settings.Temperature.Title}
-          value={props.modelConfig.temperature?.toFixed(1)}
+          value={modelConfig.temperature?.toFixed(1)}
           min="0"
           max="1" // lets limit it to 0-1
           step="0.1"
@@ -91,7 +117,7 @@ export function ModelConfigList(props: {
       >
         <InputRange
           aria={Locale.Settings.TopP.Title}
-          value={(props.modelConfig.top_p ?? 1).toFixed(1)}
+          value={(modelConfig.top_p ?? 1).toFixed(1)}
           min="0"
           max="1"
           step="0.1"
@@ -114,7 +140,7 @@ export function ModelConfigList(props: {
           type="number"
           min={1024}
           max={512000}
-          value={props.modelConfig.max_tokens}
+          value={modelConfig.max_tokens}
           onChange={(e) =>
             props.updateConfig(
               (config) =>
@@ -133,7 +159,7 @@ export function ModelConfigList(props: {
         >
           <InputRange
             aria={Locale.Settings.PresencePenalty.Title}
-            value={props.modelConfig.presence_penalty?.toFixed(1)}
+            value={modelConfig.presence_penalty?.toFixed(1)}
             min="-2"
             max="2"
             step="0.1"
@@ -155,7 +181,7 @@ export function ModelConfigList(props: {
         >
           <InputRange
             aria={Locale.Settings.FrequencyPenalty.Title}
-            value={props.modelConfig.frequency_penalty?.toFixed(1)}
+            value={modelConfig.frequency_penalty?.toFixed(1)}
             min="-2"
             max="2"
             step="0.1"
@@ -178,7 +204,7 @@ export function ModelConfigList(props: {
           <input
             aria-label={Locale.Settings.Goldfish.Enabled.Title}
             type="checkbox"
-            checked={!!props.modelConfig.goldfish?.enabled}
+            checked={!!modelConfig.goldfish?.enabled}
             onChange={(e) =>
               props.updateConfig(
                 (config) => (config.goldfish.enabled = e.currentTarget.checked),
@@ -187,7 +213,7 @@ export function ModelConfigList(props: {
           ></input>
         </ListItem>
 
-        {props.modelConfig.goldfish?.enabled && (
+        {modelConfig.goldfish?.enabled && (
           <>
             <ListItem
               title={Locale.Settings.Goldfish.Range.Title}
@@ -195,7 +221,7 @@ export function ModelConfigList(props: {
             >
               <InputRange
                 aria={Locale.Settings.Goldfish.Range.Title}
-                value={props.modelConfig.goldfish.range.toFixed(1)}
+                value={modelConfig.goldfish.range.toFixed(1)}
                 min="0"
                 max="1"
                 step="0.1"
@@ -218,7 +244,7 @@ export function ModelConfigList(props: {
               <input
                 aria-label={Locale.Settings.Goldfish.Temperature.Title}
                 type="checkbox"
-                checked={!!props.modelConfig.goldfish.temperature}
+                checked={!!modelConfig.goldfish.temperature}
                 onChange={(e) =>
                   props.updateConfig(
                     (config) =>
@@ -235,7 +261,7 @@ export function ModelConfigList(props: {
               <input
                 aria-label={Locale.Settings.Goldfish.TopP.Title}
                 type="checkbox"
-                checked={!!props.modelConfig.goldfish.top_p}
+                checked={!!modelConfig.goldfish.top_p}
                 onChange={(e) =>
                   props.updateConfig(
                     (config) =>
@@ -252,7 +278,7 @@ export function ModelConfigList(props: {
               <input
                 aria-label={Locale.Settings.Goldfish.PresencePenalty.Title}
                 type="checkbox"
-                checked={!!props.modelConfig.goldfish.presence_penalty}
+                checked={!!modelConfig.goldfish.presence_penalty}
                 onChange={(e) =>
                   props.updateConfig(
                     (config) =>
@@ -270,7 +296,7 @@ export function ModelConfigList(props: {
               <input
                 aria-label={Locale.Settings.Goldfish.FrequencyPenalty.Title}
                 type="checkbox"
-                checked={!!props.modelConfig.goldfish.frequency_penalty}
+                checked={!!modelConfig.goldfish.frequency_penalty}
                 onChange={(e) =>
                   props.updateConfig(
                     (config) =>
@@ -288,7 +314,7 @@ export function ModelConfigList(props: {
               <input
                 aria-label={Locale.Settings.Goldfish.RandomPrompt.Enabled.Title}
                 type="checkbox"
-                checked={!!props.modelConfig.goldfish.randomPromptEnabled}
+                checked={!!modelConfig.goldfish.randomPromptEnabled}
                 onChange={(e) =>
                   props.updateConfig(
                     (config) =>
@@ -299,7 +325,7 @@ export function ModelConfigList(props: {
               ></input>
             </ListItem>
 
-            {props.modelConfig.goldfish.randomPromptEnabled && (
+            {modelConfig.goldfish.randomPromptEnabled && (
               <>
                 <ListItem
                   title={Locale.Settings.Goldfish.RandomPrompt.Selected.Title}
@@ -320,7 +346,7 @@ export function ModelConfigList(props: {
                     {filteredPrompts.length > 0 ? (
                       filteredPrompts.map((prompt) => {
                         const selected =
-                          props.modelConfig.goldfish.randomPromptSelected.includes(
+                          modelConfig.goldfish.randomPromptSelected.includes(
                             prompt.content,
                           );
 
@@ -380,7 +406,7 @@ export function ModelConfigList(props: {
           <input
             aria-label={Locale.Settings.InjectSystemPrompts.Title}
             type="checkbox"
-            checked={props.modelConfig.enableInjectSystemPrompts}
+            checked={modelConfig.enableInjectSystemPrompts}
             onChange={(e) =>
               props.updateConfig(
                 (config) =>
@@ -397,7 +423,7 @@ export function ModelConfigList(props: {
           <input
             aria-label={Locale.Settings.InputTemplate.Title}
             type="text"
-            value={props.modelConfig.template}
+            value={modelConfig.template}
             onChange={(e) =>
               props.updateConfig(
                 (config) => (config.template = e.currentTarget.value),
@@ -412,8 +438,8 @@ export function ModelConfigList(props: {
       >
         <InputRange
           aria={Locale.Settings.HistoryCount.Title}
-          title={props.modelConfig.historyMessageCount.toString()}
-          value={props.modelConfig.historyMessageCount}
+          title={modelConfig.historyMessageCount.toString()}
+          value={modelConfig.historyMessageCount}
           min="0"
           max="64"
           step="1"
@@ -434,7 +460,7 @@ export function ModelConfigList(props: {
           type="number"
           min={500}
           max={4000}
-          value={props.modelConfig.compressMessageLengthThreshold}
+          value={modelConfig.compressMessageLengthThreshold}
           onChange={(e) =>
             props.updateConfig(
               (config) =>
@@ -448,7 +474,7 @@ export function ModelConfigList(props: {
         <input
           aria-label={Locale.Memory.Title}
           type="checkbox"
-          checked={props.modelConfig.sendMemory}
+          checked={modelConfig.sendMemory}
           onChange={(e) =>
             props.updateConfig(
               (config) => (config.sendMemory = e.currentTarget.checked),

@@ -166,6 +166,7 @@ export const DEFAULT_CONFIG = {
   modelConfig: {
     model: "gpt-4o-mini" as ModelType,
     providerName: "OpenAI" as ServiceProvider,
+    responseCount: 1,
     temperature: 0.5,
     top_p: 1,
     max_tokens: 4000,
@@ -284,6 +285,9 @@ export const ModalConfigValidator = {
   model(x: string) {
     return x as ModelType;
   },
+  responseCount(x: number) {
+    return limitNumber(x, 1, 5, 1);
+  },
   max_tokens(x: number) {
     return limitNumber(x, 0, 512000, 1024);
   },
@@ -338,7 +342,7 @@ export const useAppConfig = createPersistStore(
   }),
   {
     name: StoreKey.Config,
-    version: 4.2,
+    version: 4.3,
 
     merge(persistedState, currentState) {
       const state = persistedState as ChatConfig | undefined;
@@ -410,6 +414,11 @@ export const useAppConfig = createPersistStore(
         state.customModelEntries = parseCustomModelEntries(
           state.customModels ?? "",
         );
+      }
+
+      if (version < 4.3) {
+        state.modelConfig.responseCount =
+          DEFAULT_CONFIG.modelConfig.responseCount;
       }
 
       state.modelConfig = normalizeModelConfig(state.modelConfig);

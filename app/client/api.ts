@@ -41,6 +41,8 @@ export interface RequestMessage {
 export interface LLMConfig {
   model: string;
   providerName?: string;
+  responseCount?: number;
+  responseIndex?: number;
   temperature?: number;
   top_p?: number;
   stream?: boolean;
