@@ -77,6 +77,7 @@ export interface ChatOptions {
   onUpdate?: (message: string, chunk: string) => void;
   onFinish: (message: string, responseRes: Response) => void;
   onConfigResolved?: (config: ResolvedSamplingConfig) => void;
+  onPromptResolved?: (promptName: string) => void;
   onError?: (err: Error) => void;
   onController?: (controller: AbortController) => void;
   onBeforeTool?: (tool: ChatMessageTool) => void;

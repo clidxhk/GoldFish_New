@@ -153,6 +153,10 @@ function formatSamplingInfo(message: ChatMessage) {
   return segments.map(([key, value]) => `${key}=${value}`).join(" | ");
 }
 
+function formatPromptName(message: ChatMessage) {
+  return message.promptName?.trim() || "";
+}
+
 const localStorage = safeLocalStorage();
 
 const ttsPlayer = createTTSPlayer();
@@ -2058,6 +2062,11 @@ function _Chat() {
                             </div>
                           )}
 
+                          {!isContext && formatPromptName(message) && (
+                            <div className={styles["chat-message-action-date"]}>
+                              {formatPromptName(message)}
+                            </div>
+                          )}
                           {!isContext && formatSamplingInfo(message) && (
                             <div className={styles["chat-message-action-date"]}>
                               {formatSamplingInfo(message)}

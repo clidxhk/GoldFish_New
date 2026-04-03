@@ -11,6 +11,7 @@ import {
   ModelConfig,
   normalizeModelConfig,
   normalizeGoldfishConfig,
+  SearchService,
   useAccessStore,
   useAppConfig,
   useChatStore,
@@ -175,6 +176,20 @@ function getRandomGoldfishPrompt(
   return prompts[Math.floor(Math.random() * prompts.length)] ?? "";
 }
 
+function normalizeRandomPromptValue(content: string) {
+  return content.replace(/\r\n/g, "\n").trim();
+}
+
+function getRandomGoldfishPromptTitle(prompt: string) {
+  const normalizedPrompt = normalizeRandomPromptValue(prompt);
+  return (
+    SearchService.allPrompts.find(
+      (item: { content: string; title: string }) =>
+        normalizeRandomPromptValue(item.content) === normalizedPrompt,
+    )?.title ?? ""
+  );
+}
+
 export class ChatGPTApi implements LLMApi {
   private disableListModels = true;
 
@@ -328,6 +343,11 @@ export class ChatGPTApi implements LLMApi {
         modelConfig,
         options.config.responseIndex,
       );
+      const randomGoldfishPromptTitle =
+        getRandomGoldfishPromptTitle(randomGoldfishPrompt);
+      if (randomGoldfishPromptTitle) {
+        options.onPromptResolved?.(randomGoldfishPromptTitle);
+      }
       if (randomGoldfishPrompt) {
         requestPayload.messages.unshift({
           role: isO1OrO3 || isGpt5 ? "developer" : "system",

@@ -64,6 +64,7 @@ export type ChatMessage = RequestMessage & {
   isError?: boolean;
   id: string;
   model?: ModelType;
+  promptName?: string;
   sampling?: ResolvedSamplingConfig;
   tools?: ChatMessageTool[];
   audio_url?: string;
@@ -449,6 +450,10 @@ export const useChatStore = createPersistStore(
               role: "assistant",
               streaming: true,
               model: modelConfig.model,
+              promptName:
+                session.mask.name && session.mask.name !== DEFAULT_TOPIC
+                  ? session.mask.name
+                  : undefined,
             }),
         );
 
@@ -514,6 +519,12 @@ export const useChatStore = createPersistStore(
             },
             onConfigResolved(config) {
               botMessage.sampling = config;
+              get().updateTargetSession(session, (session) => {
+                session.messages = session.messages.concat();
+              });
+            },
+            onPromptResolved(promptName) {
+              botMessage.promptName = promptName;
               get().updateTargetSession(session, (session) => {
                 session.messages = session.messages.concat();
               });
