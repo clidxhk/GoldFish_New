@@ -54,6 +54,7 @@ import {
   createMessage,
   DEFAULT_TOPIC,
   ModelType,
+  normalizeModelConfig,
   SubmitKey,
   Theme,
   useAccessStore,
@@ -155,6 +156,10 @@ function formatSamplingInfo(message: ChatMessage) {
 
 function formatPromptName(message: ChatMessage) {
   return message.promptName?.trim() || "";
+}
+
+function formatInfoSwitch(enabled: boolean) {
+  return enabled ? "ON" : "OFF";
 }
 
 const localStorage = safeLocalStorage();
@@ -1023,8 +1028,69 @@ function _Chat() {
   const chatStore = useChatStore();
   const session = chatStore.currentSession();
   const config = useAppConfig();
+  const modelConfig = useMemo(
+    () => normalizeModelConfig(session.mask.modelConfig),
+    [session.mask.modelConfig],
+  );
+  const goldfishConfig = modelConfig.goldfish;
   const fontSize = config.fontSize;
   const fontFamily = config.fontFamily;
+  const goldfishSamplingCount = [
+    goldfishConfig.temperature,
+    goldfishConfig.top_p,
+    goldfishConfig.presence_penalty,
+    goldfishConfig.frequency_penalty,
+  ].filter(Boolean).length;
+  const infoItems = [
+    {
+      label: Locale.Settings.Goldfish.Enabled.Title,
+      value: formatInfoSwitch(goldfishConfig.enabled),
+      hint: goldfishConfig.enabled ? `±${goldfishConfig.range.toFixed(1)}` : "",
+      emphasize: goldfishConfig.enabled,
+    },
+    {
+      label: Locale.Settings.Goldfish.RandomModel.Enabled.Title,
+      value: formatInfoSwitch(
+        goldfishConfig.enabled &&
+          goldfishConfig.randomModelEnabled &&
+          goldfishConfig.randomModelSelected.length > 0,
+      ),
+      hint: goldfishConfig.randomModelSelected.length.toString(),
+      emphasize:
+        goldfishConfig.enabled &&
+        goldfishConfig.randomModelEnabled &&
+        goldfishConfig.randomModelSelected.length > 0,
+    },
+    {
+      label: Locale.Settings.Goldfish.RandomPrompt.Enabled.Title,
+      value: formatInfoSwitch(
+        goldfishConfig.enabled &&
+          goldfishConfig.randomPromptEnabled &&
+          goldfishConfig.randomPromptSelected.length > 0,
+      ),
+      hint: goldfishConfig.randomPromptSelected.length.toString(),
+      emphasize:
+        goldfishConfig.enabled &&
+        goldfishConfig.randomPromptEnabled &&
+        goldfishConfig.randomPromptSelected.length > 0,
+    },
+    {
+      label: "随机采样参数",
+      value: goldfishConfig.enabled ? goldfishSamplingCount.toString() : "0",
+      hint: `/ 4`,
+      emphasize: goldfishConfig.enabled && goldfishSamplingCount > 0,
+    },
+    {
+      label: Locale.Settings.ResponseCount.Title,
+      value: modelConfig.responseCount.toString(),
+      hint: "",
+    },
+    {
+      label: Locale.Settings.HistoryCount.Title,
+      value: modelConfig.historyMessageCount.toString(),
+      hint: "",
+    },
+  ];
 
   const [showExport, setShowExport] = useState(false);
 
@@ -2089,6 +2155,23 @@ function _Chat() {
                 prompts={promptHints}
                 onPromptSelect={onPromptSelect}
               />
+              <div className={styles["chat-info-panel"]}>
+                {infoItems.map((item) => (
+                  <div className={styles["chat-info-item"]} key={item.label}>
+                    <div className={styles["chat-info-label"]}>
+                      {item.label}
+                    </div>
+                    <div
+                      className={clsx(styles["chat-info-value"], {
+                        [styles["chat-info-value-active"]]: item.emphasize,
+                      })}
+                    >
+                      {item.value}
+                    </div>
+                    <div className={styles["chat-info-hint"]}>{item.hint}</div>
+                  </div>
+                ))}
+              </div>
 
               <ChatActions
                 uploadImage={uploadImage}
