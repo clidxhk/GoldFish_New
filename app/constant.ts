@@ -12,31 +12,7 @@ export const RUNTIME_CONFIG_DOM = "danger-runtime-config";
 export const STABILITY_BASE_URL = "https://api.stability.ai";
 
 export const OPENAI_BASE_URL = "https://api.openai.com";
-export const ANTHROPIC_BASE_URL = "https://api.anthropic.com";
-
-export const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/";
-
-export const BAIDU_BASE_URL = "https://aip.baidubce.com";
-export const BAIDU_OATUH_URL = `${BAIDU_BASE_URL}/oauth/2.0/token`;
-
-export const BYTEDANCE_BASE_URL = "https://ark.cn-beijing.volces.com";
-
-export const ALIBABA_BASE_URL = "https://dashscope.aliyuncs.com/api/";
-
-export const TENCENT_BASE_URL = "https://hunyuan.tencentcloudapi.com";
-
-export const MOONSHOT_BASE_URL = "https://api.moonshot.ai";
-export const IFLYTEK_BASE_URL = "https://spark-api-open.xf-yun.com";
-
-export const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
-
-export const XAI_BASE_URL = "https://api.x.ai";
-
-export const CHATGLM_BASE_URL = "https://open.bigmodel.cn";
-
-export const SILICONFLOW_BASE_URL = "https://api.siliconflow.cn";
-
-export const AI302_BASE_URL = "https://api.302.ai";
+export const BAIDU_OATUH_URL = "https://aip.baidubce.com/oauth/2.0/token";
 
 export const CACHE_URL_PREFIX = "/api/cache";
 export const UPLOAD_URL = `${CACHE_URL_PREFIX}/upload`;
@@ -136,8 +112,6 @@ export enum ServiceProvider {
   "302.AI" = "302.AI",
 }
 
-// Google API safety settings, see https://ai.google.dev/gemini-api/docs/safety-settings
-// BLOCK_NONE will not block any content, and BLOCK_ONLY_HIGH will block only high-risk content.
 export enum GoogleSafetySettingsThreshold {
   BLOCK_NONE = "BLOCK_NONE",
   BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
@@ -146,8 +120,8 @@ export enum GoogleSafetySettingsThreshold {
 }
 
 export enum ModelProvider {
-  Stability = "Stability",
   GPT = "GPT",
+  Stability = "Stability",
   GeminiPro = "GeminiPro",
   Claude = "Claude",
   Ernie = "Ernie",
@@ -168,13 +142,6 @@ export const Stability = {
   ExampleEndpoint: "https://api.stability.ai",
 };
 
-export const Anthropic = {
-  ChatPath: "v1/messages",
-  ChatPath1: "v1/complete",
-  ExampleEndpoint: "https://api.anthropic.com",
-  Vision: "2023-06-01",
-};
-
 export const OpenaiPath = {
   ChatPath: "v1/chat/completions",
   SpeechPath: "v1/audio/speech",
@@ -187,7 +154,6 @@ export const OpenaiPath = {
 export const Azure = {
   ChatPath: (deployName: string, apiVersion: string) =>
     `deployments/${deployName}/chat/completions?api-version=${apiVersion}`,
-  // https://<your_resource_name>.openai.azure.com/openai/deployments/<your_deployment_name>/images/generations?api-version=<api_version>
   ImagePath: (deployName: string, apiVersion: string) =>
     `deployments/${deployName}/images/generations?api-version=${apiVersion}`,
   ExampleEndpoint: "https://{resource-url}/openai",
@@ -195,87 +161,55 @@ export const Azure = {
 
 export const Google = {
   ExampleEndpoint: "https://generativelanguage.googleapis.com/",
-  ChatPath: (modelName: string) =>
-    `v1beta/models/${modelName}:streamGenerateContent`,
+};
+
+export const Anthropic = {
+  ExampleEndpoint: "https://api.anthropic.com",
+  Vision: "2023-06-01",
 };
 
 export const Baidu = {
-  ExampleEndpoint: BAIDU_BASE_URL,
-  ChatPath: (modelName: string) => {
-    let endpoint = modelName;
-    if (modelName === "ernie-4.0-8k") {
-      endpoint = "completions_pro";
-    }
-    if (modelName === "ernie-4.0-8k-preview-0518") {
-      endpoint = "completions_adv_pro";
-    }
-    if (modelName === "ernie-3.5-8k") {
-      endpoint = "completions";
-    }
-    if (modelName === "ernie-speed-8k") {
-      endpoint = "ernie_speed";
-    }
-    return `rpc/2.0/ai_custom/v1/wenxinworkshop/chat/${endpoint}`;
-  },
+  ExampleEndpoint: "https://aip.baidubce.com",
 };
 
 export const ByteDance = {
   ExampleEndpoint: "https://ark.cn-beijing.volces.com/api/",
-  ChatPath: "api/v3/chat/completions",
 };
 
 export const Alibaba = {
-  ExampleEndpoint: ALIBABA_BASE_URL,
-  ChatPath: (modelName: string) => {
-    if (modelName.includes("vl") || modelName.includes("omni")) {
-      return "v1/services/aigc/multimodal-generation/generation";
-    }
-    return `v1/services/aigc/text-generation/generation`;
-  },
+  ExampleEndpoint: "https://dashscope.aliyuncs.com/api/",
 };
 
 export const Tencent = {
-  ExampleEndpoint: TENCENT_BASE_URL,
+  ExampleEndpoint: "https://hunyuan.tencentcloudapi.com",
 };
 
 export const Moonshot = {
-  ExampleEndpoint: MOONSHOT_BASE_URL,
-  ChatPath: "v1/chat/completions",
+  ExampleEndpoint: "https://api.moonshot.ai",
 };
 
 export const Iflytek = {
-  ExampleEndpoint: IFLYTEK_BASE_URL,
-  ChatPath: "v1/chat/completions",
+  ExampleEndpoint: "https://spark-api-open.xf-yun.com",
 };
 
 export const DeepSeek = {
-  ExampleEndpoint: DEEPSEEK_BASE_URL,
-  ChatPath: "chat/completions",
+  ExampleEndpoint: "https://api.deepseek.com",
 };
 
 export const XAI = {
-  ExampleEndpoint: XAI_BASE_URL,
-  ChatPath: "v1/chat/completions",
+  ExampleEndpoint: "https://api.x.ai",
 };
 
 export const ChatGLM = {
-  ExampleEndpoint: CHATGLM_BASE_URL,
-  ChatPath: "api/paas/v4/chat/completions",
-  ImagePath: "api/paas/v4/images/generations",
-  VideoPath: "api/paas/v4/videos/generations",
+  ExampleEndpoint: "https://open.bigmodel.cn",
 };
 
 export const SiliconFlow = {
-  ExampleEndpoint: SILICONFLOW_BASE_URL,
-  ChatPath: "v1/chat/completions",
-  ListModelPath: "v1/models?&sub_type=chat",
+  ExampleEndpoint: "https://api.siliconflow.cn",
 };
 
 export const AI302 = {
-  ExampleEndpoint: AI302_BASE_URL,
-  ChatPath: "v1/chat/completions",
-  EmbeddingsPath: "jina/v1/embeddings",
-  ListModelPath: "v1/models?llm=1",
+  ExampleEndpoint: "https://api.302.ai",
 };
 
 export const DEFAULT_INPUT_TEMPLATE = `{{input}}`; // input / time / model / lang
@@ -421,8 +355,6 @@ You are an AI assistant with access to system tools. Your role is to help users 
 `;
 
 export const SUMMARIZE_MODEL = "gpt-4o-mini";
-export const GEMINI_SUMMARIZE_MODEL = "gemini-pro";
-export const DEEPSEEK_SUMMARIZE_MODEL = "deepseek-chat";
 
 export const KnowledgeCutOffDate: Record<string, string> = {
   default: "2021-09",
@@ -453,12 +385,6 @@ export const KnowledgeCutOffDate: Record<string, string> = {
   o1: "2023-10",
   "o3-mini-2025-01-31": "2023-10",
   "o3-mini": "2023-10",
-  // After improvements,
-  // it's now easier to add "KnowledgeCutOffDate" instead of stupid hardcoding it, as was done previously.
-  "gemini-pro": "2023-12",
-  "gemini-pro-vision": "2023-12",
-  "deepseek-chat": "2024-07",
-  "deepseek-coder": "2024-07",
 };
 
 export const DEFAULT_TTS_ENGINE = "OpenAI-TTS";
@@ -479,24 +405,15 @@ export const VISION_MODEL_REGEXES = [
   /vision/,
   /gpt-4o/,
   /gpt-4\.1/,
-  /claude.*[34]/,
-  /gemini-1\.5/,
-  /gemini-exp/,
-  /gemini-2\.[05]/,
-  /learnlm/,
-  /qwen-vl/,
-  /qwen2-vl/,
   /gpt-4-turbo(?!.*preview)/,
   /^dall-e-3$/,
-  /glm-4v/,
   /vl/i,
   /o3/,
   /o4-mini/,
-  /grok-4/i,
-  /gpt-5/
+  /gpt-5/,
 ];
 
-export const EXCLUDE_VISION_MODEL_REGEXES = [/claude-3-5-haiku-20241022/];
+export const EXCLUDE_VISION_MODEL_REGEXES: RegExp[] = [];
 
 const openaiModels = [
   // As of July 2024, gpt-4o-mini should be used in place of gpt-3.5-turbo,
@@ -561,7 +478,7 @@ const googleModels = [
   "gemini-2.0-pro-exp",
   "gemini-2.0-pro-exp-02-05",
   "gemini-2.5-pro-preview-06-05",
-  "gemini-2.5-pro"
+  "gemini-2.5-pro",
 ];
 
 const anthropicModels = [
