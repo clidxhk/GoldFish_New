@@ -122,9 +122,36 @@ import { MsEdgeTTS, OUTPUT_FORMAT } from "../utils/ms_edge_tts";
 
 import { isEmpty } from "lodash-es";
 import { getModelProvider } from "../utils/model";
-import { RealtimeChat } from "@/app/components/realtime-chat";
 import clsx from "clsx";
+import { RealtimeChat } from "@/app/components/realtime-chat";
 import { getAvailableClientsCount, isMcpEnabled } from "../mcp/actions";
+
+function formatSamplingValue(value?: number) {
+  if (value === undefined || Number.isNaN(value)) return undefined;
+  return Number(value.toFixed(3)).toString();
+}
+
+function formatSamplingInfo(message: ChatMessage) {
+  const sampling = message.sampling;
+  if (!sampling) return "";
+
+  const segments = [
+    ["temperature", formatSamplingValue(sampling.temperature)],
+    ["top_p", formatSamplingValue(sampling.top_p)],
+    ["presence_penalty", formatSamplingValue(sampling.presence_penalty)],
+    ["frequency_penalty", formatSamplingValue(sampling.frequency_penalty)],
+    [
+      sampling.max_completion_tokens !== undefined
+        ? "max_completion_tokens"
+        : "max_tokens",
+      formatSamplingValue(
+        sampling.max_completion_tokens ?? sampling.max_tokens,
+      ),
+    ],
+  ].filter(([, value]) => value !== undefined);
+
+  return segments.map(([key, value]) => `${key}=${value}`).join(" | ");
+}
 
 const localStorage = safeLocalStorage();
 
@@ -2031,6 +2058,11 @@ function _Chat() {
                             </div>
                           )}
 
+                          {!isContext && formatSamplingInfo(message) && (
+                            <div className={styles["chat-message-action-date"]}>
+                              {formatSamplingInfo(message)}
+                            </div>
+                          )}
                           <div className={styles["chat-message-action-date"]}>
                             {isContext
                               ? Locale.Chat.IsContext

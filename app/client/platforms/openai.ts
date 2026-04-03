@@ -32,6 +32,7 @@ import {
   LLMModel,
   LLMUsage,
   MultimodalContent,
+  ResolvedSamplingConfig,
   SpeechOptions,
 } from "../api";
 import Locale from "../../locales";
@@ -65,6 +66,21 @@ export interface RequestPayload {
   top_p: number;
   max_tokens?: number;
   max_completion_tokens?: number;
+}
+
+function getResolvedSamplingConfig(
+  payload: RequestPayload | DalleRequestPayload,
+): ResolvedSamplingConfig | undefined {
+  if (!("messages" in payload)) return undefined;
+
+  return {
+    temperature: payload.temperature,
+    top_p: payload.top_p,
+    presence_penalty: payload.presence_penalty,
+    frequency_penalty: payload.frequency_penalty,
+    max_tokens: payload.max_tokens,
+    max_completion_tokens: payload.max_completion_tokens,
+  };
 }
 
 export interface DalleRequestPayload {
@@ -344,6 +360,10 @@ export class ChatGPTApi implements LLMApi {
     }
 
     console.log("[Request] openai payload: ", requestPayload);
+    const resolvedSamplingConfig = getResolvedSamplingConfig(requestPayload);
+    if (resolvedSamplingConfig) {
+      options.onConfigResolved?.(resolvedSamplingConfig);
+    }
 
     const shouldStream = !isDalle3 && !!options.config.stream;
     const controller = new AbortController();

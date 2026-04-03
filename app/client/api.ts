@@ -53,6 +53,15 @@ export interface LLMConfig {
   style?: DalleRequestPayload["style"];
 }
 
+export interface ResolvedSamplingConfig {
+  temperature?: number;
+  top_p?: number;
+  presence_penalty?: number;
+  frequency_penalty?: number;
+  max_tokens?: number;
+  max_completion_tokens?: number;
+}
+
 export interface SpeechOptions {
   model: string;
   input: string;
@@ -67,6 +76,7 @@ export interface ChatOptions {
   config: LLMConfig;
   onUpdate?: (message: string, chunk: string) => void;
   onFinish: (message: string, responseRes: Response) => void;
+  onConfigResolved?: (config: ResolvedSamplingConfig) => void;
   onError?: (err: Error) => void;
   onController?: (controller: AbortController) => void;
   onBeforeTool?: (tool: ChatMessageTool) => void;

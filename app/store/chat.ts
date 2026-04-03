@@ -11,6 +11,7 @@ import type {
   ClientApi,
   MultimodalContent,
   RequestMessage,
+  ResolvedSamplingConfig,
 } from "../client/api";
 import { getClientApi } from "../client/api";
 import { ChatControllerPool } from "../client/controller";
@@ -63,6 +64,7 @@ export type ChatMessage = RequestMessage & {
   isError?: boolean;
   id: string;
   model?: ModelType;
+  sampling?: ResolvedSamplingConfig;
   tools?: ChatMessageTool[];
   audio_url?: string;
   isMcpResponse?: boolean;
@@ -506,6 +508,12 @@ export const useChatStore = createPersistStore(
                   tools[i] = { ...tool };
                 }
               });
+              get().updateTargetSession(session, (session) => {
+                session.messages = session.messages.concat();
+              });
+            },
+            onConfigResolved(config) {
+              botMessage.sampling = config;
               get().updateTargetSession(session, (session) => {
                 session.messages = session.messages.concat();
               });
