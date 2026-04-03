@@ -375,6 +375,82 @@ function tryWrapHtmlCode(text: string) {
     );
 }
 
+type MarkdownSegment =
+  | { type: "markdown"; content: string }
+  | { type: "thinking"; content: string; summary: string };
+
+function parseMarkdownSegments(content: string): MarkdownSegment[] {
+  const segments: MarkdownSegment[] = [];
+  const detailsOpenTag = "<details>";
+  const detailsCloseTag = "</details>";
+  const summaryOpenTag = "<summary>";
+  const summaryCloseTag = "</summary>";
+  const defaultSummary = "Thinking";
+
+  let currentIndex = 0;
+
+  while (currentIndex < content.length) {
+    const detailsStart = content.indexOf(detailsOpenTag, currentIndex);
+
+    if (detailsStart === -1) {
+      const remainingContent = content.slice(currentIndex);
+      if (remainingContent) {
+        segments.push({ type: "markdown", content: remainingContent });
+      }
+      break;
+    }
+
+    const markdownBefore = content.slice(currentIndex, detailsStart);
+    if (markdownBefore) {
+      segments.push({ type: "markdown", content: markdownBefore });
+    }
+
+    const summaryStart = content.indexOf(
+      summaryOpenTag,
+      detailsStart + detailsOpenTag.length,
+    );
+    const summaryEnd =
+      summaryStart === -1
+        ? -1
+        : content.indexOf(
+            summaryCloseTag,
+            summaryStart + summaryOpenTag.length,
+          );
+
+    if (summaryStart === -1 || summaryEnd === -1) {
+      segments.push({
+        type: "markdown",
+        content: content.slice(detailsStart),
+      });
+      break;
+    }
+
+    const summary =
+      content.slice(summaryStart + summaryOpenTag.length, summaryEnd).trim() ||
+      defaultSummary;
+    const thinkingStart = summaryEnd + summaryCloseTag.length;
+    const detailsEnd = content.indexOf(detailsCloseTag, thinkingStart);
+
+    if (detailsEnd === -1) {
+      segments.push({
+        type: "thinking",
+        summary,
+        content: content.slice(thinkingStart).trim(),
+      });
+      break;
+    }
+
+    segments.push({
+      type: "thinking",
+      summary,
+      content: content.slice(thinkingStart, detailsEnd).trim(),
+    });
+    currentIndex = detailsEnd + detailsCloseTag.length;
+  }
+
+  return segments;
+}
+
 function _MarkDownContent(props: { content: string }) {
   const [aiWords, setAiWords] = useState<string[]>([]);
 
@@ -385,17 +461,54 @@ function _MarkDownContent(props: { content: string }) {
   const escapedContent = useMemo(() => {
     return tryWrapHtmlCode(escapeBrackets(props.content));
   }, [props.content]);
+  const segments = useMemo(
+    () => parseMarkdownSegments(escapedContent),
+    [escapedContent],
+  );
   const aiWordHighlighter = useMemo(
     () => createAiWordHighlighter(aiWords),
     [aiWords],
   );
 
   return (
+    <>
+      {segments.map((segment, index) => {
+        if (segment.type === "thinking") {
+          return (
+            <details key={`thinking-${index}`} className="thinking-block">
+              <summary className="thinking-summary">{segment.summary}</summary>
+              <div className="thinking-content">
+                <MarkdownRenderer
+                  content={segment.content}
+                  aiWordHighlighter={aiWordHighlighter}
+                />
+              </div>
+            </details>
+          );
+        }
+
+        return (
+          <MarkdownRenderer
+            key={`markdown-${index}`}
+            content={segment.content}
+            aiWordHighlighter={aiWordHighlighter}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+function MarkdownRenderer(props: {
+  content: string;
+  aiWordHighlighter: ReturnType<typeof createAiWordHighlighter>;
+}) {
+  return (
     <ReactMarkdown
       remarkPlugins={[RemarkMath, RemarkGfm, RemarkBreaks]}
       rehypePlugins={[
         RehypeKatex,
-        aiWordHighlighter,
+        props.aiWordHighlighter,
         [
           RehypeHighlight,
           {
@@ -430,7 +543,7 @@ function _MarkDownContent(props: { content: string }) {
         },
       }}
     >
-      {escapedContent}
+      {props.content}
     </ReactMarkdown>
   );
 }

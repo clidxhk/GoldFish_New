@@ -410,6 +410,7 @@ export function streamWithThink(
   ) => void,
   options: any,
 ) {
+  const THINKING_SUMMARY = "Thinking";
   let responseText = "";
   let remainText = "";
   let finished = false;
@@ -447,6 +448,10 @@ export function streamWithThink(
 
   const finish = () => {
     if (!finished) {
+      if (isInThinkingMode) {
+        remainText += "\n\n</details>";
+        isInThinkingMode = false;
+      }
       if (!running && runTools.length > 0) {
         const toolCallMessage = {
           role: "assistant",
@@ -625,24 +630,19 @@ export function streamWithThink(
               // If this is a new thinking block or mode changed, add prefix
               isInThinkingMode = true;
               if (remainText.length > 0) {
-                remainText += "\n";
+                remainText += "\n\n";
               }
-              remainText += "> " + chunk.content;
+              remainText += `<details>\n<summary>${THINKING_SUMMARY}</summary>\n\n${chunk.content}`;
             } else {
               // Handle newlines in thinking content
-              if (chunk.content.includes("\n\n")) {
-                const lines = chunk.content.split("\n\n");
-                remainText += lines.join("\n\n> ");
-              } else {
-                remainText += chunk.content;
-              }
+              remainText += chunk.content;
             }
           } else {
             // If in normal mode
             if (isInThinkingMode || isThinkingChanged) {
               // If switching from thinking mode to normal mode
               isInThinkingMode = false;
-              remainText += "\n\n" + chunk.content;
+              remainText += "\n\n</details>\n\n" + chunk.content;
             } else {
               remainText += chunk.content;
             }

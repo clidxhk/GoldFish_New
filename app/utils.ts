@@ -259,8 +259,13 @@ export function getMessageTextContentWithoutThinking(message: RequestMessage) {
     }
   }
 
-  // Filter out thinking lines (starting with "> ")
-  return content
+  const contentWithoutThinkingDetails = content.replace(
+    /<details>\s*<summary>Thinking<\/summary>[\s\S]*?<\/details>/gi,
+    "",
+  );
+
+  // Backward compatibility for old thinking format (blockquote lines).
+  return contentWithoutThinkingDetails
     .split("\n")
     .filter((line) => !line.startsWith("> ") && line.trim() !== "")
     .join("\n")

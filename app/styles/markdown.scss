@@ -532,6 +532,46 @@
   margin-bottom: 16px;
 }
 
+.markdown-body .thinking-block {
+  margin: 0 0 18px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    rgba(59, 130, 246, 0.08),
+    rgba(59, 130, 246, 0.03)
+  );
+  overflow: hidden;
+}
+
+.markdown-body .thinking-summary {
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2457a6;
+  letter-spacing: 0.02em;
+  background: rgba(59, 130, 246, 0.08);
+  border-bottom: 1px solid transparent;
+  user-select: none;
+}
+
+.markdown-body .thinking-block[open] > .thinking-summary {
+  border-bottom-color: rgba(59, 130, 246, 0.16);
+}
+
+.markdown-body .thinking-content {
+  margin-top: 0;
+  padding: 12px 14px 14px;
+  color: rgba(15, 23, 42, 0.82);
+  font-size: 13px;
+  line-height: 1.7;
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.markdown-body .thinking-content > :last-child {
+  margin-bottom: 0;
+}
+
 .markdown-body blockquote > :first-child {
   margin-top: 0;
 }
