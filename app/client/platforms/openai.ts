@@ -92,14 +92,26 @@ function withGoldfishSampling(modelConfig: ModelConfig): ModelConfig {
   const randomize = (value: number, min: number, max: number) =>
     clamp(value + (Math.random() * 2 - 1) * goldfish.range, min, max);
 
-  nextConfig.temperature = randomize(modelConfig.temperature, 0, 2);
-  nextConfig.top_p = randomize(modelConfig.top_p, 0, 1);
-  nextConfig.presence_penalty = randomize(modelConfig.presence_penalty, -2, 2);
-  nextConfig.frequency_penalty = randomize(
-    modelConfig.frequency_penalty,
-    -2,
-    2,
-  );
+  if (goldfish.temperature) {
+    nextConfig.temperature = randomize(modelConfig.temperature, 0, 2);
+  }
+  if (goldfish.top_p) {
+    nextConfig.top_p = randomize(modelConfig.top_p, 0, 1);
+  }
+  if (goldfish.presence_penalty) {
+    nextConfig.presence_penalty = randomize(
+      modelConfig.presence_penalty,
+      -2,
+      2,
+    );
+  }
+  if (goldfish.frequency_penalty) {
+    nextConfig.frequency_penalty = randomize(
+      modelConfig.frequency_penalty,
+      -2,
+      2,
+    );
+  }
 
   return nextConfig;
 }

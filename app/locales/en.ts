@@ -600,12 +600,28 @@ const en: LocaleType = {
       Enabled: {
         Title: "Goldfish Mode",
         SubTitle:
-          "Randomly perturb temperature, top_p, presence_penalty, and frequency_penalty around their configured values",
+          "Randomly perturb selected sampling parameters around their configured values",
       },
       Range: {
         Title: "Random Offset Range",
         SubTitle:
-          "All four sampling parameters will randomly float up or down within this range on every request",
+          "Each selected parameter will randomly float up or down within this range on every request",
+      },
+      Temperature: {
+        Title: "Randomize Temperature",
+        SubTitle: "Apply random offset to temperature",
+      },
+      TopP: {
+        Title: "Randomize Top P",
+        SubTitle: "Apply random offset to top_p",
+      },
+      PresencePenalty: {
+        Title: "Randomize Presence Penalty",
+        SubTitle: "Apply random offset to presence_penalty",
+      },
+      FrequencyPenalty: {
+        Title: "Randomize Frequency Penalty",
+        SubTitle: "Apply random offset to frequency_penalty",
       },
     },
     TTS: {
