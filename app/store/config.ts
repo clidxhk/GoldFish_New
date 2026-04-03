@@ -22,12 +22,6 @@ export type TTSModelType = (typeof DEFAULT_TTS_MODELS)[number];
 export type TTSVoiceType = (typeof DEFAULT_TTS_VOICES)[number];
 export type TTSEngineType = (typeof DEFAULT_TTS_ENGINES)[number];
 
-export type GoldfishSamplingField =
-  | "temperature"
-  | "top_p"
-  | "presence_penalty"
-  | "frequency_penalty";
-
 export enum SubmitKey {
   Enter = "Enter",
   CtrlEnter = "Ctrl + Enter",
@@ -167,10 +161,6 @@ export const DEFAULT_CONFIG = {
     goldfish: {
       enabled: false,
       range: 0.2,
-      temperature: true,
-      top_p: true,
-      presence_penalty: true,
-      frequency_penalty: true,
     },
     template: config?.template ?? DEFAULT_INPUT_TEMPLATE,
     size: "1024x1024" as ModelSize,
