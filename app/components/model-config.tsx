@@ -354,25 +354,29 @@ export function ModelConfigList(props: {
         </>
       )}
 
-      <ListItem title={Locale.Settings.Model}>
-        <Select
-          aria-label={Locale.Settings.Model}
-          value={value}
-          align="left"
-          onChange={(e) => {
-            props.updateConfig((config) => {
-              config.model = ModalConfigValidator.model(e.currentTarget.value);
-              config.providerName = ServiceProvider.OpenAI;
-            });
-          }}
-        >
-          {allModels.map((v, i) => (
-            <option value={v.name} key={i}>
-              {v.displayName}
-            </option>
-          ))}
-        </Select>
-      </ListItem>
+      {!modelConfig.goldfish.randomModelEnabled && (
+        <ListItem title={Locale.Settings.Model}>
+          <Select
+            aria-label={Locale.Settings.Model}
+            value={value}
+            align="left"
+            onChange={(e) => {
+              props.updateConfig((config) => {
+                config.model = ModalConfigValidator.model(
+                  e.currentTarget.value,
+                );
+                config.providerName = ServiceProvider.OpenAI;
+              });
+            }}
+          >
+            {allModels.map((v, i) => (
+              <option value={v.name} key={i}>
+                {v.displayName}
+              </option>
+            ))}
+          </Select>
+        </ListItem>
+      )}
       <ListItem
         title={Locale.Settings.ResponseCount.Title}
         subTitle={Locale.Settings.ResponseCount.SubTitle}
