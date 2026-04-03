@@ -13,6 +13,10 @@ import styles from "./model-config.module.scss";
 import { SearchService, usePromptStore } from "../store/prompt";
 import { useMemo, useState } from "react";
 
+function normalizeRandomPromptValue(content: string) {
+  return content.trim();
+}
+
 export function ModelConfigList(props: {
   modelConfig: ModelConfig;
   updateConfig: (updater: (config: ModelConfig) => void) => void;
@@ -32,7 +36,9 @@ export function ModelConfigList(props: {
     const seen = new Set<string>();
 
     return prompts.filter((prompt) => {
-      const key = `${prompt.title}\n${prompt.content}`;
+      const key = `${prompt.title.trim()}\n${normalizeRandomPromptValue(
+        prompt.content,
+      )}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -345,9 +351,12 @@ export function ModelConfigList(props: {
                   <div className={styles["random-prompt-pool-list"]}>
                     {filteredPrompts.length > 0 ? (
                       filteredPrompts.map((prompt) => {
+                        const promptValue = normalizeRandomPromptValue(
+                          prompt.content,
+                        );
                         const selected =
                           modelConfig.goldfish.randomPromptSelected.includes(
-                            prompt.content,
+                            promptValue,
                           );
 
                         return (
@@ -363,10 +372,10 @@ export function ModelConfigList(props: {
                                   config.goldfish.randomPromptSelected,
                                 );
 
-                                if (selectedSet.has(prompt.content)) {
-                                  selectedSet.delete(prompt.content);
+                                if (selectedSet.has(promptValue)) {
+                                  selectedSet.delete(promptValue);
                                 } else {
-                                  selectedSet.add(prompt.content);
+                                  selectedSet.add(promptValue);
                                 }
 
                                 config.goldfish.randomPromptSelected =
